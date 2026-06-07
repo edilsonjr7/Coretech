@@ -1,8 +1,10 @@
 package coretech.sistemaCoreTech.model;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import jakarta.annotation.Generated;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -21,6 +23,9 @@ public class Produto {
     private String descricao;
     private BigDecimal preco;
     private Integer estoque;
+
+    @ElementCollection
+    private List<String> imagemProduto;
 
     public long getId() {
         return id;
