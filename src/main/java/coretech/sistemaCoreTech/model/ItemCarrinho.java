@@ -21,7 +21,7 @@ public class ItemCarrinho {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name="produtos") // aqui eu literalmente usei um join entre as colunas, "junte a tabela itemCarrinho com a do produto"
+    @JoinColumn(name="produto_id") // aqui eu literalmente usei um join entre as colunas, "junte a tabela itemCarrinho com a do produto"
     private Produto produto;
 
     private Integer quantidade;

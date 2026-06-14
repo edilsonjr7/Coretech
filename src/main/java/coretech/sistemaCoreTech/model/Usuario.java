@@ -1,6 +1,6 @@
 package coretech.sistemaCoreTech.model;
 
-import javax.management.relation.Role;
+import coretech.sistemaCoreTech.enums.Role;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

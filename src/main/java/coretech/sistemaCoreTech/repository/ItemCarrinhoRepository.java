@@ -17,6 +17,7 @@ public interface ItemCarrinhoRepository  extends JpaRepository<ItemCarrinho, Lon
     Optional<ItemCarrinho> findByCarrinhoIdAndProdutoid(Long id, Long idProduto);
     // aqui consigo buscar itens especifícos no meu carrinho
     
+    
 
 
     

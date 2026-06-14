@@ -9,7 +9,7 @@ import java.util.Optional;
 @Repository
 public interface CarrinhoRepository extends JpaRepository<Carrinho, Long> {
 
-    // vai encotrar o carrinho do usuario logado
+    // vai encontrar o carrinho do usuario logado
     Optional<Carrinho> findByUsuarioId(Long id);
 
 

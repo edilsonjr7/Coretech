@@ -24,7 +24,7 @@ public class Carrinho {
     private Long id;
 
     @OneToOne
-    @JoinColumn(name = "usuarios")
+    @JoinColumn(name = "usuario_id") // chave estrangeira de usuarios
     private Usuario usuario;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
