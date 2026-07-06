@@ -34,7 +34,7 @@ public class Usuario {
 
     private boolean ativo=false; // o perfil é criado após a confirmação no email
 
-    private String tokenConfimrado;
+   
 
 
 
@@ -98,13 +98,16 @@ public class Usuario {
     }
 
 
-    public String getTokenConfimrado() {
-        return tokenConfimrado;
-    }
+   
 
-    
-    public void setTokenConfimrado(String tokenConfimrado) {
-        this.tokenConfimrado = tokenConfimrado;
+
+    public Usuario(long id, String nome, String email, String senha, Role role, boolean ativo) {
+        this.id = id;
+        this.nome = nome;
+        this.email = email;
+        this.senha = senha;
+        this.role = role;
+        this.ativo = ativo;
     }
 
 

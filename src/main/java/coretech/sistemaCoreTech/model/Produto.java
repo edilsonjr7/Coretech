@@ -68,6 +68,19 @@ public class Produto {
         this.estoque = estoque;
     }
 
+    public Produto(long id, String nome, String descricao, BigDecimal preco, Integer estoque,
+            List<String> imagemProduto) {
+        this.id = id;
+        this.nome = nome;
+        this.descricao = descricao;
+        this.preco = preco;
+        this.estoque = estoque;
+        this.imagemProduto = imagemProduto;
+    }
+
+
+    
+
 
 
     
