@@ -68,6 +68,15 @@ public class Produto {
         this.estoque = estoque;
     }
 
+     public List<String> getImagemProduto() {
+        return imagemProduto;
+    }
+
+    public void setImagemProduto(List<String> imagemProduto) {
+        this.imagemProduto = imagemProduto;
+    }
+
+
     public Produto(long id, String nome, String descricao, BigDecimal preco, Integer estoque,
             List<String> imagemProduto) {
         this.id = id;
@@ -78,6 +87,11 @@ public class Produto {
         this.imagemProduto = imagemProduto;
     }
 
+    public Produto(){
+        
+    }
+
+   
 
     
 

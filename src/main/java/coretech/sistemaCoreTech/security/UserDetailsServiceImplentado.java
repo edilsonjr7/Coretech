@@ -11,6 +11,9 @@ import coretech.sistemaCoreTech.repository.UsuarioRepository;
 @Service
 public class UserDetailsServiceImplentado implements UserDetailsService {
 
+    // aqui ele vai buscar o usuario e vai devolver pro UserDetailsimpl
+    // Regra de negocio
+
     private final UsuarioRepository usuarioRepository;
 
     public UserDetailsServiceImplentado(UsuarioRepository usuarioRepository) {

@@ -13,7 +13,7 @@ import coretech.sistemaCoreTech.model.Usuario;
 import coretech.sistemaCoreTech.service.UsuarioService;
 
 @RestController
-@RequestMapping(name = "/usuarios")
+@RequestMapping("/usuarios")
 public class UsuarioController {
 
     @Autowired
