@@ -19,7 +19,7 @@ public class UsuarioController {
     @Autowired
     private UsuarioService usuarioService;
 
-    @GetMapping
+    @GetMapping(value =  "/user")
    public ResponseEntity<List> findAll(){
     List<Usuario> list = usuarioService.findAll(); 
         return ResponseEntity.ok().body(list);

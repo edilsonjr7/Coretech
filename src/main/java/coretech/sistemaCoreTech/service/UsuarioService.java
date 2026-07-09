@@ -16,11 +16,6 @@ public class UsuarioService {
    @Autowired
    private  UsuarioRepository usuarioRepository;
 
-    
-
-    
- 
-
     // listar os usuarios
      public List<Usuario> findAll(){
         return usuarioRepository.findAll();
@@ -41,7 +36,6 @@ public class UsuarioService {
 }
 
 
-     
 
      // salva o usuario
      public Usuario salvar(Usuario usuario){
