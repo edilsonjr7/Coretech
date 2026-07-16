@@ -18,7 +18,7 @@ public class Usuario {
     @Id 
     @GeneratedValue(strategy = GenerationType.IDENTITY)// gera o ID do usuario no banco de dados
     @Column(name="id", unique=true) // aqui dei o nome da coluna e usei o unique para um unico valor do ID no0 banco
-    private long id;
+    private Long id;
     
     @Column(unique = true, nullable = false, length = 100)
     private String nome;
@@ -40,12 +40,12 @@ public class Usuario {
 
 
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -103,7 +103,7 @@ public class Usuario {
    
 
 
-    public Usuario(long id, String nome, String email, String senha, Role role, boolean ativo) {
+    public Usuario(Long id, String nome, String email, String senha, Role role, boolean ativo) {
         this.id = id;
         this.nome = nome;
         this.email = email;

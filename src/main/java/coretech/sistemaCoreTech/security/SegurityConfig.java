@@ -18,14 +18,14 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SegurityConfig {
 
 
-    // aqui criptografa a senha
-    
+    // aqui criptografa a senha   
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new BCryptPasswordEncoder(); // vai criptografar me 60 caracteres igual na entidade do usuario
     }
 
-
+// org.springframework.http.HttpMethod.PUT,
+                    //org.springframework.http.HttpMethod.DELETE,
 
   
     @Bean
@@ -40,33 +40,37 @@ public class SegurityConfig {
 
             .authorizeHttpRequests(auth -> auth
 
-                // rotas abertas — qualquer um pode acessar
+                // rota de login e cadastro
                 .requestMatchers("/auth/**").permitAll()
 
-                // H2 Console — apenas em ambiente de teste
+                // apenas em ambiente de teste
                 .requestMatchers("/h2-console/**").permitAll()
 
                 // rotas exclusivas do ADMIN
                 .requestMatchers("/admin/**").hasRole("ADMIN")
 
-                // produtos — leitura aberta, escrita só ADMIN
+                
                 .requestMatchers(
                     org.springframework.http.HttpMethod.GET, "/produtos/**"
                 ).permitAll()
                 .requestMatchers(
-                    org.springframework.http.HttpMethod.POST,
-                    org.springframework.http.HttpMethod.PUT,
-                    org.springframework.http.HttpMethod.DELETE,
-                    "/produtos/**"
-                ).hasRole("ADMIN")
+                    org.springframework.http.HttpMethod.POST,"/produtos/**"
+                ).hasRole("ADMIN") 
+                .requestMatchers(
+                    org.springframework.http.HttpMethod.PUT,"/produtos/**"
+                ).hasRole("ADMIN") 
+                .requestMatchers(
+                    org.springframework.http.HttpMethod.DELETE,"/produtos/**"
+                ).hasRole("ADMIN") 
 
-                // rotas exclusivas do USER autenticado
+                // rotas exclusivas do usario autenticado
                 .requestMatchers("/carrinho/**").hasRole("USER")
                 .requestMatchers("/favoritos/**").hasRole("USER")
 
                 // qualquer outra rota exige autenticação
                 .anyRequest().authenticated()
             )
+
 
             .headers(headers -> headers
                 .frameOptions(frame -> frame.sameOrigin())

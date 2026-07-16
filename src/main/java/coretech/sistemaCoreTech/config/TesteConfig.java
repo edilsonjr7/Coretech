@@ -30,8 +30,8 @@ public class TesteConfig implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
 
-        Usuario usuario = new Usuario(1, "tom", "tom@gmail.com", passwordEncoder.encode("123456"), Role.USER, true);
-        Usuario usuario2 = new Usuario(2, "ana", "ana@gmail.com", passwordEncoder.encode("6767"), Role.ADMIN, true);
+        Usuario usuario = new Usuario(null, "tom", "tom@gmail.com", passwordEncoder.encode("123456"), Role.USER, true);
+        Usuario usuario2 = new Usuario(null, "ana", "ana@gmail.com", passwordEncoder.encode("6767"), Role.ADMIN, true);
 
         usuarioRepository.saveAll(Arrays.asList(usuario, usuario2));
 
