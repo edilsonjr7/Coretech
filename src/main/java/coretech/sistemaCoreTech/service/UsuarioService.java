@@ -29,14 +29,6 @@ public class UsuarioService {
 
 
 
-       public Usuario findById(Long id){
-        Optional<Usuario> obj =  usuarioRepository.findById(id);
-        return obj.get();
-    
-}
-
-
-
      // salva o usuario
      public Usuario salvar(Usuario usuario){
         return usuarioRepository.save(usuario);

@@ -1,6 +1,7 @@
 package coretech.sistemaCoreTech.model;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,27 +11,29 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name="carrinho")
-public class Carrinho {
+@Table(name = "pedidos")
+public class Pedido {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
-    @JoinColumn(name = "usuario_id") // chave estrangeira de usuarios
+    @ManyToOne
+    @JoinColumn(name = "usuario_id")
     private Usuario usuario;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "carrinho_id")
-    private List<ItemCarrinho> itens = new ArrayList<>();
+    private LocalDateTime data = LocalDateTime.now();
 
     private BigDecimal total = BigDecimal.ZERO;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "pedido_id")
+    private List<ItemCarrinho> itens = new ArrayList<>();
 
     public Long getId() {
         return id;
@@ -48,12 +51,12 @@ public class Carrinho {
         this.usuario = usuario;
     }
 
-    public List<ItemCarrinho> getItens() {
-        return itens;
+    public LocalDateTime getData() {
+        return data;
     }
 
-    public void setItens(List<ItemCarrinho> itens) {
-        this.itens = itens;
+    public void setData(LocalDateTime data) {
+        this.data = data;
     }
 
     public BigDecimal getTotal() {
@@ -64,19 +67,14 @@ public class Carrinho {
         this.total = total;
     }
 
-    public void recalcularTotal() {
-        BigDecimal soma = BigDecimal.ZERO;
-        if (itens != null) {
-            for (ItemCarrinho item : itens) {
-                if (item.getPreco() != null && item.getQuantidade() != null) {
-                    soma = soma.add(item.getPreco().multiply(BigDecimal.valueOf(item.getQuantidade())));
-                }
-            }
-        }
-        this.total = soma;
+    public List<ItemCarrinho> getItens() {
+        return itens;
     }
 
-    public Carrinho() {
+    public void setItens(List<ItemCarrinho> itens) {
+        this.itens = itens;
+    }
+
+    public Pedido() {
     }
 }
-

@@ -27,15 +27,6 @@ public class UsuarioController {
         // body(list) -> retorna o corpo de dentro da minha lista 
     }
 
-    @GetMapping(value =  "/{id}")
-    public ResponseEntity<Usuario> findById(@PathVariable Long id){  //@PathVariable faz referencia como o parametro do "/{id}" do GetMapping
-        Usuario obj = usuarioService.findById(id);
-        return ResponseEntity.ok().body(obj);
-
-    }
-
-
-
-
+   
     
 }

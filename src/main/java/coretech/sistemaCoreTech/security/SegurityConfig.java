@@ -1,33 +1,32 @@
 package coretech.sistemaCoreTech.security;
 
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 public class SegurityConfig {
 
+    private final JwtAuthFilter jwtAuthFilter;
 
-    // aqui criptografa a senha   
+    public SegurityConfig(JwtAuthFilter jwtAuthFilter) {
+        this.jwtAuthFilter = jwtAuthFilter;
+    }
+
+    // aqui criptografa a senha
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(); // vai criptografar me 60 caracteres igual na entidade do usuario
     }
 
-// org.springframework.http.HttpMethod.PUT,
-                    //org.springframework.http.HttpMethod.DELETE,
-
-  
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
@@ -49,37 +48,26 @@ public class SegurityConfig {
                 // rotas exclusivas do ADMIN
                 .requestMatchers("/admin/**").hasRole("ADMIN")
 
-                
-                .requestMatchers(
-                    org.springframework.http.HttpMethod.GET, "/produtos/**"
-                ).permitAll()
-                .requestMatchers(
-                    org.springframework.http.HttpMethod.POST,"/produtos/**"
-                ).hasRole("ADMIN") 
-                .requestMatchers(
-                    org.springframework.http.HttpMethod.PUT,"/produtos/**"
-                ).hasRole("ADMIN") 
-                .requestMatchers(
-                    org.springframework.http.HttpMethod.DELETE,"/produtos/**"
-                ).hasRole("ADMIN") 
+.requestMatchers(HttpMethod.GET, "/produtos/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/produtos/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/produtos/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/produtos/**").hasRole("ADMIN")
 
                 // rotas exclusivas do usario autenticado
                 .requestMatchers("/carrinho/**").hasRole("USER")
                 .requestMatchers("/favoritos/**").hasRole("USER")
+                .requestMatchers("/pedidos/**").hasRole("USER")
 
                 // qualquer outra rota exige autenticação
                 .anyRequest().authenticated()
             )
 
-
             .headers(headers -> headers
                 .frameOptions(frame -> frame.sameOrigin())
-            );
+            )
+
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 }
-
-    
-    
-
