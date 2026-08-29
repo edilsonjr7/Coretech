@@ -39,6 +39,9 @@ public class SegurityConfig {
 
             .authorizeHttpRequests(auth -> auth
 
+                // recursos estáticos do frontend
+                .requestMatchers("/", "/index.html", "/login.html", "/cadastro.html", "/css/**", "/js/**").permitAll()
+
                 // rota de login e cadastro
                 .requestMatchers("/auth/**").permitAll()
 

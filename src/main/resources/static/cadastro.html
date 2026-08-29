@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro - GameStore</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <div class="auth-page">
+    <a href="/" class="auth-back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Voltar à loja
+    </a>
+
+    <div class="auth-card">
+      <div class="auth-logo">
+        GameStore
+        <span class="logo-icon"></span>
+      </div>
+      <p class="auth-subtitle">Crie sua conta</p>
+
+      <div class="auth-tabs">
+        <a href="/login.html" class="auth-tab">Entrar</a>
+        <a href="/cadastro.html" class="auth-tab active">Cadastrar</a>
+      </div>
+
+      <div class="auth-alert" id="authAlert"></div>
+
+      <form id="cadastroForm">
+        <div class="form-group">
+          <label class="form-label" for="nome">Nome</label>
+          <input type="text" id="nome" class="form-input" placeholder="Seu nome" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="email">E-mail</label>
+          <input type="email" id="email" class="form-input" placeholder="seu@email.com" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="senha">Senha</label>
+          <input type="password" id="senha" class="form-input" placeholder="Mínimo 6 caracteres" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="confirmarSenha">Confirmar senha</label>
+          <input type="password" id="confirmarSenha" class="form-input" placeholder="Repita sua senha" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">Criar conta</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+</body>
+</html>
