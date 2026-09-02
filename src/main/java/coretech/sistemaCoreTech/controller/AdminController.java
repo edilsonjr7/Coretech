@@ -23,13 +23,13 @@ public class AdminController {
     @Autowired
     private UsuarioService usuarioService;
 
-    // Painel: todos os usuários logados
+   
     @GetMapping("/usuarios-logados")
     public ResponseEntity<List<Map<String, String>>> usuariosLogados() {
         return ResponseEntity.ok(loggedUsersService.listarLogados());
     }
 
-    // Painel: todos os usuários cadastrados
+    
     @GetMapping("/usuarios")
     public ResponseEntity<List<Usuario>> todosUsuarios() {
         return ResponseEntity.ok(usuarioService.findAll());

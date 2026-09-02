@@ -1,16 +1,15 @@
 package coretech.sistemaCoreTech.model;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.annotation.Generated;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.math.BigDecimal;
 
 @Entity
 @Table(name="produtos")
@@ -23,9 +22,10 @@ public class Produto {
     private String descricao;
     private BigDecimal preco;
     private Integer estoque;
+    private String categoria;
 
     @ElementCollection
-    private List<String> imagemProduto;
+    private List<String> imagemProduto = new ArrayList<>();
 
     public long getId() {
         return id;
@@ -44,7 +44,6 @@ public class Produto {
     }
 
     public String getDescricao() {
-        
         return descricao;
     }
 
@@ -63,12 +62,20 @@ public class Produto {
     public Integer getEstoque() {
         return estoque;
     }
-    
+
     public void setEstoque(Integer estoque) {
         this.estoque = estoque;
     }
 
-     public List<String> getImagemProduto() {
+    public String getCategoria() {
+        return categoria;
+    }
+
+    public void setCategoria(String categoria) {
+        this.categoria = categoria;
+    }
+
+    public List<String> getImagemProduto() {
         return imagemProduto;
     }
 
@@ -76,26 +83,22 @@ public class Produto {
         this.imagemProduto = imagemProduto;
     }
 
-
     public Produto(long id, String nome, String descricao, BigDecimal preco, Integer estoque,
-            List<String> imagemProduto) {
+            String categoria, List<String> imagemProduto) {
         this.id = id;
         this.nome = nome;
         this.descricao = descricao;
         this.preco = preco;
         this.estoque = estoque;
-        this.imagemProduto = imagemProduto;
+        this.categoria = categoria;
+        this.imagemProduto = imagemProduto != null ? imagemProduto : new ArrayList<>();
     }
 
-    public Produto(){
-        
+    public Produto(long id, String nome, String descricao, BigDecimal preco, Integer estoque,
+            List<String> imagemProduto) {
+        this(id, nome, descricao, preco, estoque, "Consoles", imagemProduto);
     }
 
-   
-
-    
-
-
-
-    
+    public Produto() {
+    }
 }

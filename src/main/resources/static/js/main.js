@@ -157,24 +157,44 @@ function renderHeader() {
       </a>
 
       <nav class="nav-menu" id="navMenu">
-        <a href="/" class="nav-link active">Home</a>
-        <a href="#produtos" class="nav-link">Produtos</a>
-        <a href="#categorias" class="nav-link">Categorias</a>
-        <a href="#ofertas" class="nav-link">Ofertas</a>
-        <a href="#contato" class="nav-link">Contato</a>
+        <a href="/" class="nav-link">Home</a>
+        <a href="/#produtos" class="nav-link">Produtos</a>
+        <a href="/#categorias" class="nav-link">Categorias</a>
+        <a href="/#ofertas" class="nav-link">Ofertas</a>
+        <a href="/carrinho.html" class="nav-link">Carrinho</a>
       </nav>
 
       <div class="header-actions">
-        <button class="icon-btn" id="btnBusca" title="Buscar">
-          ${ICONES.busca}
-        </button>
-        <a href="${logged ? '/perfil.html' : '/login.html'}" class="icon-btn" title="${logged ? user.nome : 'Entrar'}">
-          ${ICONES.usuario}
-        </a>
-        <a href="/carrinho.html" class="icon-btn" title="Carrinho">
+        ${logged && user && user.role === 'ADMIN' ? `
+          <a href="/admin.html" class="icon-btn admin-badge-btn" title="Painel Admin" style="color:var(--primary);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span class="desktop-only-text">Admin</span>
+          </a>
+        ` : ''}
+
+        <a href="/carrinho.html" class="icon-btn cart-btn-header" title="Meu Carrinho">
           ${ICONES.carrinho}
-          <span class="cart-badge" id="cartBadge" style="${logged ? '' : 'display:none'}">0</span>
+          <span class="cart-badge" id="cartBadge" style="display:none">0</span>
         </a>
+
+        ${logged && user ? `
+          <div class="user-logged-box">
+            <a href="/perfil.html" class="user-greeting" title="Ver Meu Perfil (${user.email})">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <span>Olá, <strong>${user.nome ? user.nome.split(' ')[0] : 'Gamer'}</strong></span>
+            </a>
+            <button class="btn btn-outline btn-sm btn-logout" id="btnLogout" title="Sair da Conta">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              <span class="desktop-only-text">Sair</span>
+            </button>
+          </div>
+        ` : `
+          <div class="auth-header-buttons">
+            <a href="/login.html" class="btn btn-outline btn-sm">Entrar</a>
+            <a href="/cadastro.html" class="btn btn-primary btn-sm">Cadastrar</a>
+          </div>
+        `}
+
         <button class="menu-toggle" id="menuToggle" title="Menu">
           ${ICONES.menu}
         </button>
@@ -186,14 +206,28 @@ function renderHeader() {
   const menuToggle = document.getElementById('menuToggle');
   const navMenu = document.getElementById('navMenu');
 
-  menuToggle.addEventListener('click', () => {
-    navMenu.classList.toggle('open');
-  });
+  if (menuToggle && navMenu) {
+    menuToggle.addEventListener('click', () => {
+      navMenu.classList.toggle('open');
+    });
 
-  // Fechar menu ao clicar em link
-  navMenu.querySelectorAll('.nav-link').forEach(link => {
-    link.addEventListener('click', () => navMenu.classList.remove('open'));
-  });
+    // Fechar menu ao clicar em link
+    navMenu.querySelectorAll('.nav-link').forEach(link => {
+      link.addEventListener('click', () => navMenu.classList.remove('open'));
+    });
+  }
+
+  // Logout
+  const btnLogout = document.getElementById('btnLogout');
+  if (btnLogout) {
+    btnLogout.addEventListener('click', async () => {
+      await API.logout();
+      showToast('Logout realizado com sucesso!', 'success');
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 800);
+    });
+  }
 
   // Atualizar badge do carrinho
   if (logged) {
@@ -252,6 +286,7 @@ async function carregarProdutos() {
     if (data && data.length > 0) {
       produtos = data.map(p => ({
         ...p,
+        categoria: p.categoria || 'Consoles',
         preco: Number(p.preco),
         imagem: p.imagemProduto && p.imagemProduto.length > 0
           ? p.imagemProduto[0]

@@ -39,12 +39,17 @@ public class TesteConfig implements CommandLineRunner {
         usuarioRepository.saveAll(Arrays.asList(usuario, usuario2));
 
         if (produtoRepository.count() == 0) {
-            Produto notebook = new Produto(0, "Notebook Coretech X", "Notebook 16GB RAM, SSD 512GB", new BigDecimal("4999.00"), 10, List.of("notebook.jpg"));
-            Produto smartphone = new Produto(0, "Smartphone Zeta", "Smartphone 128GB, tela 6.5pol", new BigDecimal("2499.00"), 20, List.of("smartphone.jpg"));
-            Produto fone = new Produto(0, "Fone Bluetooth", "Fone sem fio com cancelamento de ruído", new BigDecimal("399.00"), 50, List.of("fone.jpg"));
-            produtoRepository.saveAll(Arrays.asList(notebook, smartphone, fone));
+            Produto p1 = new Produto(0, "PlayStation 5", "Console de nova geração com SSD ultrarrápido, ray tracing e gráficos 4K.", new BigDecimal("4499.00"), 10, "Consoles", List.of("https://images.unsplash.com/photo-1606813907291-d86efa9b94db?q=80&w=800&auto=format&fit=crop"));
+            Produto p2 = new Produto(0, "Xbox Series X", "O console mais poderoso da Microsoft com 12 TFLOPS de potência e Quick Resume.", new BigDecimal("4299.00"), 8, "Consoles", List.of("https://images.unsplash.com/photo-1621259182978-fbf93132d53d?q=80&w=800&auto=format&fit=crop"));
+            Produto p3 = new Produto(0, "Nintendo Switch OLED", "Console híbrido com tela OLED de 7 polegadas e modo portátil e dock.", new BigDecimal("2499.00"), 15, "Consoles", List.of("https://images.unsplash.com/photo-1578303512597-81e6cc155b3e?q=80&w=800&auto=format&fit=crop"));
+            Produto p4 = new Produto(0, "Controle DualSense", "Controle sem fio com feedback háptico e gatilhos adaptativos.", new BigDecimal("499.00"), 25, "Controles", List.of("https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?q=80&w=800&auto=format&fit=crop"));
+            Produto p5 = new Produto(0, "Controle Xbox Elite", "Controle profissional com paddles traseiros e sticks intercambiáveis.", new BigDecimal("1299.00"), 12, "Controles", List.of("https://images.unsplash.com/photo-1607853202273-797f1c22a38e?q=80&w=800&auto=format&fit=crop"));
+            Produto p6 = new Produto(0, "Headset Gamer Pro", "Headset com som surround 7.1, microfone com cancelamento de ruído e RGB.", new BigDecimal("349.00"), 30, "Headsets", List.of("https://images.unsplash.com/photo-1599669454699-248893623440?q=80&w=800&auto=format&fit=crop"));
+            Produto p7 = new Produto(0, "Headset Sem Fio Pulse", "Headset sem fio com áudio 3D e bateria de 30 horas de duração.", new BigDecimal("899.00"), 18, "Headsets", List.of("https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?q=80&w=800&auto=format&fit=crop"));
+            Produto p8 = new Produto(0, "Teclado Mecânico RGB", "Teclado mecânico com switches blue, RGB por tecla e estrutura em alumínio.", new BigDecimal("599.00"), 22, "Acessórios", List.of("https://images.unsplash.com/photo-1587829741301-dc798b83add3?q=80&w=800&auto=format&fit=crop"));
+            produtoRepository.saveAll(Arrays.asList(p1, p2, p3, p4, p5, p6, p7, p8));
         }
 
-        System.out.println(">>> Seed de usuários e produtos de teste inserido com sucesso <<<");
+        System.out.println(">>> Seed de usuários e produtos gamers inserido no banco com sucesso <<<");
     }
 }

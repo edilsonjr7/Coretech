@@ -10,6 +10,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import jakarta.servlet.DispatcherType;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -28,10 +34,25 @@ public class SegurityConfig {
     }
 
     @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOriginPatterns(List.of("*"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
+
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
             .csrf(csrf -> csrf.disable())
+
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -39,8 +60,30 @@ public class SegurityConfig {
 
             .authorizeHttpRequests(auth -> auth
 
-                // recursos estáticos do frontend
-                .requestMatchers("/", "/index.html", "/login.html", "/cadastro.html", "/css/**", "/js/**").permitAll()
+                // requisições preflight do navegador (OPTIONS)
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                // permite despachos internos de forward e error do Spring MVC
+                .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.ERROR).permitAll()
+
+                // recursos estáticos e páginas do frontend
+                .requestMatchers(
+                    "/",
+                    "/*.html",
+                    "/**/*.html",
+                    "/carrinho.html",
+                    "/perfil.html",
+                    "/index.html",
+                    "/login.html",
+                    "/cadastro.html",
+                    "/admin.html",
+                    "/css/**",
+                    "/js/**",
+                    "/images/**",
+                    "/comprovantes/**",
+                    "/favicon.ico",
+                    "/error"
+                ).permitAll()
 
                 // rota de login e cadastro
                 .requestMatchers("/auth/**").permitAll()
@@ -48,18 +91,17 @@ public class SegurityConfig {
                 // apenas em ambiente de teste
                 .requestMatchers("/h2-console/**").permitAll()
 
-                // rotas exclusivas do ADMIN
-                .requestMatchers("/admin/**").hasRole("ADMIN")
-
-.requestMatchers(HttpMethod.GET, "/produtos/**").permitAll()
+                // catálogo de produtos público (GET) e restrito a ADMIN (POST, PUT, DELETE)
+                .requestMatchers(HttpMethod.GET, "/produtos/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/produtos/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/produtos/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/produtos/**").hasRole("ADMIN")
 
-                // rotas exclusivas do usario autenticado
-                .requestMatchers("/carrinho/**").hasRole("USER")
-                .requestMatchers("/favoritos/**").hasRole("USER")
-                .requestMatchers("/pedidos/**").hasRole("USER")
+                // rotas exclusivas do ADMIN
+                .requestMatchers("/admin/**").hasRole("ADMIN")
+
+                // rotas de API exclusivas de usuários autenticados (USER ou ADMIN)
+                .requestMatchers("/carrinho/**", "/favoritos/**", "/pedidos/**").authenticated()
 
                 // qualquer outra rota exige autenticação
                 .anyRequest().authenticated()

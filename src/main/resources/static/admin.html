@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Admin - GameStore</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    /* ===== Painel Admin ===== */
+    .admin-page {
+      min-height: 100vh;
+      background: var(--bg, #f8f9fa);
+    }
+
+    .admin-header {
+      background: #1a1a2e;
+      color: #fff;
+      padding: 16px 0;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .admin-header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .admin-logo {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #fff;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .admin-logo .logo-icon {
+      width: 10px;
+      height: 10px;
+      background: #e94560;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .admin-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .admin-user-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      color: #ccc;
+    }
+
+    .admin-user-info strong {
+      color: #fff;
+    }
+
+    .admin-badge {
+      background: #e94560;
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .admin-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 16px;
+    }
+
+    .admin-title {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #1a1a2e;
+      margin-bottom: 4px;
+    }
+
+    .admin-subtitle {
+      color: #6c757d;
+      margin-bottom: 24px;
+    }
+
+    .admin-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .admin-search {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 8px 12px;
+      flex: 1;
+      max-width: 400px;
+    }
+
+    .admin-search input {
+      border: none;
+      outline: none;
+      flex: 1;
+      font-size: 0.9rem;
+      background: transparent;
+    }
+
+    .admin-search svg {
+      width: 18px;
+      height: 18px;
+      color: #6c757d;
+    }
+
+    .btn-admin {
+      background: #e94560;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s;
+    }
+
+    .btn-admin:hover {
+      background: #d63851;
+    }
+
+    .btn-admin svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+
+    .btn-danger {
+      background: #dc3545;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-danger:hover {
+      background: #c82333;
+    }
+
+    .btn-edit {
+      background: #007bff;
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: background 0.2s;
+    }
+
+    .btn-edit:hover {
+      background: #0069d9;
+    }
+
+    .btn-delete {
+      background: #dc3545;
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: background 0.2s;
+    }
+
+    .btn-delete:hover {
+      background: #c82333;
+    }
+
+    /* Tabela */
+    .admin-table-wrapper {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      overflow: hidden;
+    }
+
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .admin-table thead {
+      background: #f8f9fa;
+    }
+
+    .admin-table th {
+      padding: 14px 16px;
+      text-align: left;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #6c757d;
+      border-bottom: 2px solid #dee2e6;
+    }
+
+    .admin-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #f1f3f5;
+      font-size: 0.9rem;
+      color: #333;
+      vertical-align: middle;
+    }
+
+    .admin-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .admin-table tr:hover td {
+      background: #f8f9fa;
+    }
+
+    .product-thumb {
+      width: 50px;
+      height: 50px;
+      border-radius: 8px;
+      object-fit: cover;
+      background: #f1f3f5;
+    }
+
+    .product-name-cell {
+      font-weight: 600;
+      color: #1a1a2e;
+    }
+
+    .product-price-cell {
+      font-weight: 700;
+      color: #e94560;
+    }
+
+    .stock-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .stock-low {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .stock-ok {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .stock-out {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .table-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    /* Modal */
+    .admin-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+    }
+
+    .admin-modal-overlay.active {
+      display: flex;
+    }
+
+    .admin-modal {
+      background: #fff;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 24px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+
+    .admin-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .admin-modal-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #1a1a2e;
+    }
+
+    .admin-modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: #6c757d;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .admin-modal-close:hover {
+      color: #333;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #495057;
+      margin-bottom: 6px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ced4da;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-input:focus {
+      border-color: #e94560;
+      box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.1);
+    }
+
+    textarea.form-input {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .admin-alert {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+      display: none;
+    }
+
+    .admin-alert.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+      display: block;
+    }
+
+    .admin-alert.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      display: block;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #6c757d;
+    }
+
+    .empty-state svg {
+      width: 60px;
+      height: 60px;
+      margin-bottom: 12px;
+      color: #ced4da;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #f1f3f5;
+      border-top-color: #e94560;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Stats Grid */
+    .admin-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .admin-stat-card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      border: 1px solid #dee2e6;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .stat-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      background: rgba(18, 181, 208, 0.15);
+      color: var(--primary, #12b5d0);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .stat-icon svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .stat-info h3 {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      color: #6c757d;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .stat-info p {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #1a1a2e;
+      line-height: 1;
+    }
+
+    .category-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: rgba(18, 181, 208, 0.15);
+      color: #0ea5c6;
+    }
+
+    /* Responsivo */
+    @media (max-width: 768px) {
+      .admin-table-wrapper {
+        overflow-x: auto;
+      }
+
+      .admin-table {
+        min-width: 700px;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .admin-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .admin-search {
+        max-width: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header Admin -->
+  <header class="admin-header">
+    <div class="container admin-header-inner">
+      <a href="/" class="admin-logo">
+        GameStore
+        <span class="logo-icon"></span>
+      </a>
+      <div class="admin-header-actions">
+        <div class="admin-user-info">
+          <span>Olá, <strong id="adminNome">Admin</strong></span>
+          <span class="admin-badge">Admin</span>
+        </div>
+        <a href="/" class="btn-secondary" style="text-decoration:none;">Ver Loja</a>
+        <button class="btn-danger" id="btnLogout">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Conteúdo -->
+  <main class="admin-container">
+    <h1 class="admin-title">Painel de Administração</h1>
+    <p class="admin-subtitle">Cadastre, edite e exclua os produtos salvos no banco de dados.</p>
+
+    <div class="admin-alert" id="adminAlert"></div>
+
+    <!-- Cards de Estatísticas -->
+    <div class="admin-stats-grid">
+      <div class="admin-stat-card">
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </div>
+        <div class="stat-info">
+          <h3>Total Produtos</h3>
+          <p id="statTotalProdutos">0</p>
+        </div>
+      </div>
+
+      <div class="admin-stat-card">
+        <div class="stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="stat-info">
+          <h3>Em Estoque</h3>
+          <p id="statEmEstoque">0 un</p>
+        </div>
+      </div>
+
+      <div class="admin-stat-card">
+        <div class="stat-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="stat-info">
+          <h3>Estoque Baixo</h3>
+          <p id="statEstoqueBaixo">0</p>
+        </div>
+      </div>
+
+      <div class="admin-stat-card">
+        <div class="stat-icon" style="background: rgba(233,69,96,0.15); color: #e94560;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <div class="stat-info">
+          <h3>Valor do Estoque</h3>
+          <p id="statValorEstoque">R$ 0,00</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-toolbar">
+      <div class="admin-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="buscaProduto" placeholder="Buscar por nome ou categoria...">
+      </div>
+      <button class="btn-admin" id="btnNovoProduto">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Novo Produto
+      </button>
+    </div>
+
+    <div class="admin-table-wrapper">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Imagem</th>
+            <th>Nome</th>
+            <th>Categoria</th>
+            <th>Descrição</th>
+            <th>Preço</th>
+            <th>Estoque</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="produtosTableBody">
+          <tr>
+            <td colspan="7">
+              <div class="loading"><div class="spinner"></div></div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Modal Produto -->
+  <div class="admin-modal-overlay" id="modalProduto">
+    <div class="admin-modal">
+      <div class="admin-modal-header">
+        <h2 class="admin-modal-title" id="modalTitle">Novo Produto</h2>
+        <button class="admin-modal-close" id="modalClose">&times;</button>
+      </div>
+
+      <form id="produtoForm">
+        <input type="hidden" id="produtoId">
+
+        <div class="form-group">
+          <label class="form-label" for="nome">Nome do Produto *</label>
+          <input type="text" id="nome" class="form-input" placeholder="Ex: PlayStation 5" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="categoria">Categoria *</label>
+            <select id="categoria" class="form-input" required>
+              <option value="Consoles">Consoles</option>
+              <option value="Controles">Controles</option>
+              <option value="Headsets">Headsets</option>
+              <option value="Acessórios">Acessórios</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="preco">Preço (R$) *</label>
+            <input type="number" id="preco" class="form-input" placeholder="0.00" step="0.01" min="0" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="estoque">Quantidade em Estoque *</label>
+          <input type="number" id="estoque" class="form-input" placeholder="0" min="0" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="descricao">Descrição</label>
+          <textarea id="descricao" class="form-input" placeholder="Descreva o produto..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="imagem">URL da Imagem</label>
+          <input type="text" id="imagem" class="form-input" placeholder="https://exemplo.com/imagem.jpg">
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" id="btnCancelar">Cancelar</button>
+          <button type="submit" class="btn-admin" id="btnSalvar">Salvar no Banco de Dados</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/js/api.js"></script>
+  <script src="/js/admin.js"></script>
+</body>
+</html>

@@ -25,6 +25,67 @@ const API = {
     return res.json();
   },
 
+  // ============ PRODUTOS (ADMIN - CRUD) ============
+
+  async criarProduto(produto) {
+    const token = localStorage.getItem('gs_token');
+    if (!token) throw new Error('Faça login como admin');
+
+    const res = await fetch(`${this.baseUrl}/produtos`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(produto)
+    });
+
+    if (!res.ok) {
+      const erro = await res.text();
+      throw new Error(erro || 'Erro ao criar produto');
+    }
+
+    return res.json();
+  },
+
+  async atualizarProduto(id, produto) {
+    const token = localStorage.getItem('gs_token');
+    if (!token) throw new Error('Faça login como admin');
+
+    const res = await fetch(`${this.baseUrl}/produtos/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(produto)
+    });
+
+    if (!res.ok) {
+      const erro = await res.text();
+      throw new Error(erro || 'Erro ao atualizar produto');
+    }
+
+    return res.json();
+  },
+
+  async deletarProduto(id) {
+    const token = localStorage.getItem('gs_token');
+    if (!token) throw new Error('Faça login como admin');
+
+    const res = await fetch(`${this.baseUrl}/produtos/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!res.ok) {
+      const erro = await res.text();
+      throw new Error(erro || 'Erro ao deletar produto');
+    }
+
+    return res.ok;
+  },
+
   // ============ AUTH ============
 
   async login(email, senha) {
