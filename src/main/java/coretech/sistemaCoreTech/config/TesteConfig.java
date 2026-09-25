@@ -9,6 +9,7 @@ import coretech.sistemaCoreTech.enums.Role;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import coretech.sistemaCoreTech.model.Produto;
@@ -18,6 +19,7 @@ import coretech.sistemaCoreTech.repository.UsuarioRepository;
 
 @Configuration
 @Profile("test")
+@Order(1)
 public class TesteConfig implements CommandLineRunner {
 
     private final UsuarioRepository usuarioRepository;
@@ -33,10 +35,12 @@ public class TesteConfig implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
 
-        Usuario usuario = new Usuario(null, "tom", "tom@gmail.com", passwordEncoder.encode("123456"), Role.USER, true);
-        Usuario usuario2 = new Usuario(null, "ana", "ana@gmail.com", passwordEncoder.encode("6767"), Role.ADMIN, true);
-
-        usuarioRepository.saveAll(Arrays.asList(usuario, usuario2));
+        // Somente cliente (USER) é criado pelo seed.
+        // O único perfil ADMIN do sistema é o admin master, criado pelo AdminConfig.
+        if (usuarioRepository.findByEmail("tom@gmail.com").isEmpty()) {
+            Usuario usuario = new Usuario(null, "tom", "tom@gmail.com", passwordEncoder.encode("123456"), Role.USER, true);
+            usuarioRepository.save(usuario);
+        }
 
         if (produtoRepository.count() == 0) {
             Produto p1 = new Produto(0, "PlayStation 5", "Console de nova geração com SSD ultrarrápido, ray tracing e gráficos 4K.", new BigDecimal("4499.00"), 10, "Consoles", List.of("https://images.unsplash.com/photo-1606813907291-d86efa9b94db?q=80&w=800&auto=format&fit=crop"));
@@ -50,6 +54,6 @@ public class TesteConfig implements CommandLineRunner {
             produtoRepository.saveAll(Arrays.asList(p1, p2, p3, p4, p5, p6, p7, p8));
         }
 
-        System.out.println(">>> Seed de usuários e produtos gamers inserido no banco com sucesso <<<");
+        System.out.println(">>> Seed de cliente e produtos gamers inserido no banco com sucesso <<<");
     }
 }

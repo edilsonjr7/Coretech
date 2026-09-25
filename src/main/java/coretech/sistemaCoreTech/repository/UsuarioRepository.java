@@ -3,6 +3,7 @@ package coretech.sistemaCoreTech.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import coretech.sistemaCoreTech.enums.Role;
 import coretech.sistemaCoreTech.model.Usuario;
 import java.util.List;
 import java.util.Optional;
@@ -23,7 +24,8 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
           Optional<Usuario> findByEmail(String email);
 
-        
+          // lista os usuarios pelo perfil (USER ou ADMIN) - usado para limpar admins antigos
+          List<Usuario> findByRole(Role role);
 
 
     

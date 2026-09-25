@@ -36,11 +36,15 @@ document.addEventListener('DOMContentLoaded', () => {
           role: data.role
         });
 
+        const role = (data.role || 'USER').toUpperCase();
+        // somente o admin master vai para o painel de administração
+        const destino = role === 'ADMIN' ? '/admin.html' : '/';
+
         alert.className = 'auth-alert success';
         alert.textContent = 'Login realizado com sucesso! Redirecionando...';
 
         setTimeout(() => {
-          window.location.href = '/';
+          window.location.href = destino;
         }, 1200);
       } catch (err) {
         alert.className = 'auth-alert error';
@@ -51,8 +55,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ============ CADASTRO ============
+  // ============ CADASTRO (1: dados / 2: código de 6 números por e-mail) ============
   if (cadastroForm) {
+    const etapaCodigo = document.getElementById('etapaCodigo');
+    const codigoForm = document.getElementById('codigoForm');
+    const codigoDica = document.getElementById('codigoDica');
+    const codigoEmail = document.getElementById('codigoEmail');
+    const btnReenviarCodigo = document.getElementById('btnReenviarCodigo');
+    let emailPendente = null;
+
     cadastroForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -88,20 +99,113 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.textContent = 'Criando conta...';
 
       try {
-        await API.cadastro(nome, email, senha);
+        const data = await API.cadastro(nome, email, senha);
+        emailPendente = data.email || email;
+
+        // esconde os dados e mostra a etapa do código
+        cadastroForm.style.display = 'none';
+        if (codigoEmail) codigoEmail.textContent = emailPendente;
+        if (codigoDica) {
+          if (data.codigoDev) {
+            codigoDica.style.display = 'block';
+            codigoDica.textContent = 'Modo desenvolvimento (e-mail desabilitado): seu código é ' + data.codigoDev;
+          } else {
+            codigoDica.style.display = 'none';
+          }
+        }
+        if (etapaCodigo) etapaCodigo.style.display = 'block';
 
         alert.className = 'auth-alert success';
-        alert.textContent = 'Conta criada com sucesso! Redirecionando para login...';
+        alert.textContent = data.mensagem || 'Enviamos um código de 6 números para o seu e-mail.';
 
-        setTimeout(() => {
-          window.location.href = '/login.html';
-        }, 1500);
+        const campoCodigo = document.getElementById('codigo');
+        if (campoCodigo) campoCodigo.focus();
       } catch (err) {
         alert.className = 'auth-alert error';
         alert.textContent = err.message || 'Erro ao criar conta.';
+      } finally {
         btn.disabled = false;
         btn.textContent = 'Criar conta';
       }
     });
+
+    // ============ ETAPA 2: confirma o cadastro com o código recebido ============
+    if (codigoForm) {
+      codigoForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const codigo = document.getElementById('codigo').value.trim();
+        const alert = document.getElementById('authAlert');
+
+        alert.className = 'auth-alert';
+        alert.textContent = '';
+
+        if (!/^\d{6}$/.test(codigo)) {
+          alert.className = 'auth-alert error';
+          alert.textContent = 'Digite os 6 números do código enviado para o seu e-mail.';
+          return;
+        }
+
+        if (!emailPendente) {
+          alert.className = 'auth-alert error';
+          alert.textContent = 'Refaça o cadastro para gerar um novo código.';
+          return;
+        }
+
+        const btn = codigoForm.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        btn.textContent = 'Confirmando...';
+
+        try {
+          await API.confirmarCodigo(emailPendente, codigo);
+
+          alert.className = 'auth-alert success';
+          alert.textContent = 'Conta confirmada com sucesso! Redirecionando para o login...';
+
+          setTimeout(() => {
+            window.location.href = '/login.html';
+          }, 1500);
+        } catch (err) {
+          alert.className = 'auth-alert error';
+          alert.textContent = err.message || 'Erro ao confirmar o código.';
+          btn.disabled = false;
+          btn.textContent = 'Confirmar código';
+        }
+      });
+    }
+
+    // ============ REENVIAR CÓDIGO ============
+    if (btnReenviarCodigo) {
+      btnReenviarCodigo.addEventListener('click', async (e) => {
+        e.preventDefault();
+
+        const alert = document.getElementById('authAlert');
+
+        if (!emailPendente) {
+          alert.className = 'auth-alert error';
+          alert.textContent = 'Refaça o cadastro para gerar um novo código.';
+          return;
+        }
+
+        btnReenviarCodigo.textContent = 'Reenviando...';
+
+        try {
+          const data = await API.reenviarCodigo(emailPendente);
+
+          alert.className = 'auth-alert success';
+          alert.textContent = data.mensagem || 'Novo código enviado para o seu e-mail.';
+
+          if (codigoDica && data.codigoDev) {
+            codigoDica.style.display = 'block';
+            codigoDica.textContent = 'Modo desenvolvimento (e-mail desabilitado): seu novo código é ' + data.codigoDev;
+          }
+        } catch (err) {
+          alert.className = 'auth-alert error';
+          alert.textContent = err.message || 'Erro ao reenviar o código.';
+        } finally {
+          btnReenviarCodigo.textContent = 'Reenviar código';
+        }
+      });
+    }
   }
 });

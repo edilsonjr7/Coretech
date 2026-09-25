@@ -21,13 +21,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const buscaProduto = document.getElementById('buscaProduto');
   const adminAlert = document.getElementById('adminAlert');
 
+  // aba de usuários
+  const abas = document.querySelectorAll('.admin-tab');
+  const abaProdutos = document.getElementById('abaProdutos');
+  const abaUsuarios = document.getElementById('abaUsuarios');
+  const buscaUsuario = document.getElementById('buscaUsuario');
+  const btnAtualizarUsuarios = document.getElementById('btnAtualizarUsuarios');
+
   // ============ ESTADO ============
   let produtos = [];
+  let usuarios = [];
   let editandoId = null;
 
   // ============ INICIALIZAÇÃO ============
   adminNome.textContent = user.nome || 'Admin';
   carregarProdutos();
+  carregarUsuarios();
 
   // ============ FUNÇÕES ============
 
@@ -137,6 +146,92 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
     });
+  }
+
+  // ============ USUÁRIOS (painel com todos os usuários) ============
+
+  async function carregarUsuarios() {
+    const tbody = document.getElementById('usuariosTableBody');
+    tbody.innerHTML = '<tr><td colspan="5"><div class="loading"><div class="spinner"></div></div></td></tr>';
+
+    try {
+      usuarios = await API.listarUsuarios();
+      atualizarEstatisticasUsuarios(usuarios);
+      renderTabelaUsuarios(usuarios);
+    } catch (err) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5">
+            <div class="empty-state">
+              <p>Erro ao carregar os usuários do banco de dados: ${err.message}</p>
+            </div>
+          </td>
+        </tr>
+      `;
+    }
+  }
+
+  function atualizarEstatisticasUsuarios(lista) {
+    const todos = lista || [];
+    const clientes = todos.filter(u => (u.role || '').toUpperCase() !== 'ADMIN').length;
+    const admins = todos.filter(u => (u.role || '').toUpperCase() === 'ADMIN').length;
+    const ativos = todos.filter(u => u.ativo).length;
+
+    const elTotal = document.getElementById('statTotalUsuarios');
+    const elClientes = document.getElementById('statTotalClientes');
+    const elAdmins = document.getElementById('statTotalAdmins');
+    const elAtivos = document.getElementById('statTotalAtivos');
+
+    if (elTotal) elTotal.textContent = todos.length;
+    if (elClientes) elClientes.textContent = clientes;
+    if (elAdmins) elAdmins.textContent = admins;
+    if (elAtivos) elAtivos.textContent = ativos;
+  }
+
+  function renderTabelaUsuarios(lista) {
+    const tbody = document.getElementById('usuariosTableBody');
+
+    if (!lista || lista.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5">
+            <div class="empty-state">
+              <p>Nenhum usuário cadastrado no banco de dados.</p>
+            </div>
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = lista.map(u => {
+      const role = (u.role || 'USER').toUpperCase();
+      const roleClass = role === 'ADMIN' ? 'role-admin' : 'role-user';
+      const roleTexto = role === 'ADMIN' ? 'Admin (master)' : 'Cliente';
+      const statusClass = u.ativo ? 'status-ativo' : 'status-pendente';
+      const statusTexto = u.ativo ? 'Ativa' : 'Aguardando código';
+
+      return `
+        <tr>
+          <td>${u.id}</td>
+          <td class="product-name-cell">${u.nome || '-'}</td>
+          <td class="user-email-cell">${u.email || '-'}</td>
+          <td><span class="role-badge ${roleClass}">${roleTexto}</span></td>
+          <td><span class="status-badge ${statusClass}">${statusTexto}</span></td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function trocarAba(nomeAba) {
+    abas.forEach(aba => aba.classList.toggle('active', aba.dataset.aba === nomeAba));
+
+    if (abaProdutos) abaProdutos.style.display = nomeAba === 'produtos' ? 'block' : 'none';
+    if (abaUsuarios) abaUsuarios.style.display = nomeAba === 'usuarios' ? 'block' : 'none';
+
+    if (nomeAba === 'usuarios') {
+      carregarUsuarios();
+    }
   }
 
   function abrirModalNovo() {
@@ -291,4 +386,40 @@ document.addEventListener('DOMContentLoaded', () => {
       renderTabela(filtrados);
     }, 300);
   });
+
+  // ============ ABAS / USUÁRIOS ============
+
+  // Troca entre as abas Produtos e Usuários
+  abas.forEach(aba => {
+    aba.addEventListener('click', () => trocarAba(aba.dataset.aba));
+  });
+
+  // Recarrega a lista de usuários do banco
+  if (btnAtualizarUsuarios) {
+    btnAtualizarUsuarios.addEventListener('click', async () => {
+      await carregarUsuarios();
+      mostrarAlerta('Lista de usuários atualizada!', 'success');
+    });
+  }
+
+  // Busca de usuários por nome, e-mail ou perfil
+  if (buscaUsuario) {
+    let debounceUsuario;
+    buscaUsuario.addEventListener('input', () => {
+      clearTimeout(debounceUsuario);
+      debounceUsuario = setTimeout(() => {
+        const termo = buscaUsuario.value.trim().toLowerCase();
+        if (!termo) {
+          renderTabelaUsuarios(usuarios);
+          return;
+        }
+        const filtrados = usuarios.filter(u =>
+          (u.nome && u.nome.toLowerCase().includes(termo)) ||
+          (u.email && u.email.toLowerCase().includes(termo)) ||
+          (u.role && u.role.toLowerCase().includes(termo))
+        );
+        renderTabelaUsuarios(filtrados);
+      }, 300);
+    });
+  }
 });

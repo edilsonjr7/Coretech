@@ -51,6 +51,32 @@
 
         <button type="submit" class="btn btn-primary btn-block">Criar conta</button>
       </form>
+
+      <!-- Etapa 2: confirmação do cadastro com o código de 6 números enviado por e-mail -->
+      <div id="etapaCodigo" style="display:none;">
+        <p class="auth-subtitle" style="margin-bottom:16px;">
+          Enviamos um código de 6 números para <strong id="codigoEmail"></strong>.
+          Digite o código para confirmar a criação da conta.
+        </p>
+
+        <div class="auth-alert success" id="codigoDica" style="display:none;"></div>
+
+        <form id="codigoForm">
+          <div class="form-group">
+            <label class="form-label" for="codigo">Código de confirmação</label>
+            <input type="text" id="codigo" class="form-input" placeholder="000000" inputmode="numeric"
+                   maxlength="6" pattern="[0-9]{6}" autocomplete="one-time-code"
+                   style="text-align:center; letter-spacing:8px; font-size:1.3rem;" required>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block">Confirmar código</button>
+        </form>
+
+        <p style="text-align:center; margin-top:14px; font-size:0.9rem;">
+          Não recebeu o código?
+          <a href="#" id="btnReenviarCodigo" style="color:var(--primary, #12b5d0); font-weight:600;">Reenviar código</a>
+        </p>
+      </div>
     </div>
   </div>
 

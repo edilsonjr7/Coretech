@@ -1,5 +1,9 @@
 package coretech.sistemaCoreTech.model;
 
+import java.time.LocalDateTime;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import coretech.sistemaCoreTech.enums.Role;
 
 import jakarta.persistence.Column;
@@ -33,6 +37,14 @@ public class Usuario {
     private Role role; // usuario ou adm
 
     private boolean ativo=false; // o perfil é criado após a confirmação no email
+
+    // código de 6 números enviado por e-mail para confirmar o cadastro do cliente
+    @Column(name = "codigo_confirmacao", length = 6)
+    private String codigoConfirmacao;
+
+    // data/hora em que o código de confirmação deixa de ser válido
+    @Column(name = "codigo_expira_em")
+    private LocalDateTime codigoExpiraEm;
 
    
 
@@ -70,6 +82,8 @@ public class Usuario {
     }
 
 
+    // @JsonIgnore: a senha (hash) nunca é devolvida nas respostas JSON da API
+    @JsonIgnore
     public String getSenha() {
         return senha;
     }
@@ -99,8 +113,24 @@ public class Usuario {
         this.ativo = ativo;
     }
 
+    // @JsonIgnore: o código de confirmação não pode aparecer nas respostas JSON
+    @JsonIgnore
+    public String getCodigoConfirmacao() {
+        return codigoConfirmacao;
+    }
 
-   
+    public void setCodigoConfirmacao(String codigoConfirmacao) {
+        this.codigoConfirmacao = codigoConfirmacao;
+    }
+
+    @JsonIgnore
+    public LocalDateTime getCodigoExpiraEm() {
+        return codigoExpiraEm;
+    }
+
+    public void setCodigoExpiraEm(LocalDateTime codigoExpiraEm) {
+        this.codigoExpiraEm = codigoExpiraEm;
+    }
 
 
     public Usuario(Long id, String nome, String email, String senha, Role role, boolean ativo) {

@@ -85,9 +85,14 @@ Este relatório descreve, de forma honesta e completa, tudo o que foi feito para
 
 ## 5. Como testar (ambiente de teste já ativo)
 
+> ATUALIZAÇÃO (consultoria de acesso ADMIN/confirmação por código): o seed de ADMIN `ana@gmail.com`
+> foi **removido** e o único admin agora é o admin master definido em `application.properties`
+> (`app.admin.email` = `admin@gamil.com`, senha `admin123`). Detalhes completos em
+> `CONSULTORIA_ADMIN_E_CONFIRMACAO.md`.
+
 Usuários de teste (seed):
 - **USER:** `tom@gmail.com` / senha `123456`
-- **ADMIN:** `ana@gmail.com` / senha `6767`
+- **ADMIN (master):** `admin@gamil.com` / senha `admin123`
 
 Endpoints principais:
 - `POST /auth/login` — retorna o token JWT

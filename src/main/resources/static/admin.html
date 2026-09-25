@@ -513,6 +513,73 @@
       color: #0ea5c6;
     }
 
+    /* Abas do painel (Produtos / Usuários) */
+    .admin-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #dee2e6;
+    }
+
+    .admin-tab {
+      background: none;
+      border: none;
+      padding: 10px 18px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #6c757d;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .admin-tab:hover {
+      color: #1a1a2e;
+    }
+
+    .admin-tab.active {
+      color: #e94560;
+      border-bottom-color: #e94560;
+    }
+
+    /* Badges de perfil e status do usuário */
+    .role-badge,
+    .status-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .role-admin {
+      background: rgba(233, 69, 96, 0.15);
+      color: #c81e3e;
+    }
+
+    .role-user {
+      background: rgba(18, 181, 208, 0.15);
+      color: #0ea5c6;
+    }
+
+    .status-ativo {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-pendente {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .user-email-cell {
+      color: #6c757d;
+      word-break: break-all;
+    }
+
     /* Responsivo */
     @media (max-width: 768px) {
       .admin-table-wrapper {
@@ -561,9 +628,18 @@
   <!-- Conteúdo -->
   <main class="admin-container">
     <h1 class="admin-title">Painel de Administração</h1>
-    <p class="admin-subtitle">Cadastre, edite e exclua os produtos salvos no banco de dados.</p>
+    <p class="admin-subtitle">Acesso exclusivo do administrador master: gerencie os usuários e o CRUD de produtos do sistema.</p>
 
     <div class="admin-alert" id="adminAlert"></div>
+
+    <!-- Abas do painel -->
+    <div class="admin-tabs">
+      <button type="button" class="admin-tab active" data-aba="produtos">Produtos</button>
+      <button type="button" class="admin-tab" data-aba="usuarios">Usuários</button>
+    </div>
+
+    <!-- ================= ABA PRODUTOS ================= -->
+    <section id="abaProdutos">
 
     <!-- Cards de Estatísticas -->
     <div class="admin-stats-grid">
@@ -641,6 +717,86 @@
         </tbody>
       </table>
     </div>
+    </section>
+
+    <!-- ================= ABA USUÁRIOS ================= -->
+    <section id="abaUsuarios" style="display:none;">
+
+      <!-- Cards de Estatísticas de Usuários -->
+      <div class="admin-stats-grid">
+        <div class="admin-stat-card">
+          <div class="stat-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div class="stat-info">
+            <h3>Total de Usuários</h3>
+            <p id="statTotalUsuarios">0</p>
+          </div>
+        </div>
+
+        <div class="admin-stat-card">
+          <div class="stat-icon" style="background: rgba(18,181,208,0.15); color: #0ea5c6;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <div class="stat-info">
+            <h3>Clientes (USER)</h3>
+            <p id="statTotalClientes">0</p>
+          </div>
+        </div>
+
+        <div class="admin-stat-card">
+          <div class="stat-icon" style="background: rgba(233,69,96,0.15); color: #e94560;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div class="stat-info">
+            <h3>Administradores</h3>
+            <p id="statTotalAdmins">0</p>
+          </div>
+        </div>
+
+        <div class="admin-stat-card">
+          <div class="stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="stat-info">
+            <h3>Contas Ativas</h3>
+            <p id="statTotalAtivos">0</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-toolbar">
+        <div class="admin-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="buscaUsuario" placeholder="Buscar por nome, e-mail ou perfil...">
+        </div>
+        <button class="btn-admin" id="btnAtualizarUsuarios">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          Atualizar Lista
+        </button>
+      </div>
+
+      <div class="admin-table-wrapper">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nome</th>
+              <th>E-mail</th>
+              <th>Perfil</th>
+              <th>Status da Conta</th>
+            </tr>
+          </thead>
+          <tbody id="usuariosTableBody">
+            <tr>
+              <td colspan="5">
+                <div class="loading"><div class="spinner"></div></div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </main>
 
   <!-- Modal Produto -->

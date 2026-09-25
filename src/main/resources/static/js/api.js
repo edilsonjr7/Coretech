@@ -115,7 +115,40 @@ const API = {
       throw new Error(erro || 'Erro ao cadastrar');
     }
 
+    // resposta: { mensagem, email, emailEnviado, codigoDev }
+    return res.json();
+  },
+
+  // Confirma o cadastro com o código de 6 números recebido por e-mail
+  async confirmarCodigo(email, codigo) {
+    const res = await fetch(`${this.baseUrl}/auth/confirmar-codigo`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, codigo })
+    });
+
+    if (!res.ok) {
+      const erro = await res.text();
+      throw new Error(erro || 'Erro ao confirmar o código');
+    }
+
     return res.text();
+  },
+
+  // Gera e envia um novo código de 6 números
+  async reenviarCodigo(email) {
+    const res = await fetch(`${this.baseUrl}/auth/reenviar-codigo`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+
+    if (!res.ok) {
+      const erro = await res.text();
+      throw new Error(erro || 'Erro ao reenviar o código');
+    }
+
+    return res.json();
   },
 
   async logout() {
@@ -130,6 +163,34 @@ const API = {
     localStorage.removeItem('gs_token');
     localStorage.removeItem('gs_user');
     return res.ok;
+  },
+
+  // ============ ADMIN ============
+
+  // Lista todos os usuários cadastrados (apenas ADMIN master)
+  async listarUsuarios() {
+    const token = localStorage.getItem('gs_token');
+    if (!token) throw new Error('Faça login como admin');
+
+    const res = await fetch(`${this.baseUrl}/admin/usuarios`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!res.ok) throw new Error('Erro ao carregar usuários');
+    return res.json();
+  },
+
+  // Usuários com login ativo no momento
+  async listarUsuariosLogados() {
+    const token = localStorage.getItem('gs_token');
+    if (!token) throw new Error('Faça login como admin');
+
+    const res = await fetch(`${this.baseUrl}/admin/usuarios-logados`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!res.ok) throw new Error('Erro ao carregar usuários logados');
+    return res.json();
   },
 
   // ============ CARRINHO ============
