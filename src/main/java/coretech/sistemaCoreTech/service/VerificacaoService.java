@@ -9,13 +9,7 @@ import org.springframework.stereotype.Service;
 import coretech.sistemaCoreTech.model.Usuario;
 import coretech.sistemaCoreTech.repository.UsuarioRepository;
 
-/**
- * Regra de negócio da confirmação de cadastro:
- * gera o código de 6 números, envia por e-mail, valida e ativa o usuário.
- *
- * O usuário só consegue logar depois que o código é confirmado
- * (o campo `ativo` da entidade Usuario é usado pelo Spring Security em isEnabled()).
- */
+
 @Service
 public class VerificacaoService {
 
@@ -61,7 +55,7 @@ public class VerificacaoService {
         return armazenado != null && codigo != null && armazenado.equals(codigo.trim());
     }
 
-    // ativa a conta e descarta o código (não é mais necessário)
+   
     public void confirmar(Usuario usuario) {
         usuario.setAtivo(true);
         usuario.setCodigoConfirmacao(null);
