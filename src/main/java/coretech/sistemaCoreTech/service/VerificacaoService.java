@@ -28,10 +28,15 @@ public class VerificacaoService {
     }
 
     /**
-     * Gera um novo código, deixa o usuário inativo, salva no banco e envia por e-mail.
-     * Retorna o resultado do envio (e o código somente quando o e-mail está desabilitado).
+     * Gera um novo código de 6 dígitos, deixa o usuário inativo, salva no banco e
+     * envia por e-mail (envio real).
+     *
+     * Se o envio falhar, propaga EmailNaoEnviadoException: o código fica salvo e o
+     * cliente pode pedir o reenvio. O código NUNCA é devolvido para a API.
+     *
+     * @return detalhe do envio (para a mensagem mostrada ao cliente)
      */
-    public Envio gerarEEnviar(Usuario usuario) {
+    public String gerarEEnviar(Usuario usuario) {
         String codigo = String.format("%06d", SORTEIO.nextInt(1_000_000));
 
         usuario.setCodigoConfirmacao(codigo);
@@ -39,10 +44,7 @@ public class VerificacaoService {
         usuario.setAtivo(false);
         usuarioRepository.save(usuario);
 
-        String detalhe = emailService.enviarCodigoConfirmacao(usuario.getEmail(), usuario.getNome(), codigo);
-        boolean enviado = emailService.isEmailHabilitado();
-
-        return new Envio(enviado, detalhe, enviado ? null : codigo);
+        return emailService.enviarCodigoConfirmacao(usuario.getEmail(), usuario.getNome(), codigo, minutosExpiracao);
     }
 
     public boolean codigoExpirado(Usuario usuario) {
@@ -65,31 +67,5 @@ public class VerificacaoService {
 
     public int getMinutosExpiracao() {
         return minutosExpiracao;
-    }
-
-    // resultado do envio do código
-    public static class Envio {
-
-        private final boolean enviado;
-        private final String detalhe;
-        private final String codigoDev;
-
-        public Envio(boolean enviado, String detalhe, String codigoDev) {
-            this.enviado = enviado;
-            this.detalhe = detalhe;
-            this.codigoDev = codigoDev;
-        }
-
-        public boolean isEnviado() {
-            return enviado;
-        }
-
-        public String getDetalhe() {
-            return detalhe;
-        }
-
-        public String getCodigoDev() {
-            return codigoDev;
-        }
     }
 }

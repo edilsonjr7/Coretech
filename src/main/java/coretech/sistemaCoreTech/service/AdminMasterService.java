@@ -14,12 +14,6 @@ import coretech.sistemaCoreTech.repository.CarrinhoRepository;
 import coretech.sistemaCoreTech.repository.PedidoRepository;
 import coretech.sistemaCoreTech.repository.UsuarioRepository;
 
-/**
- * Manutenção do acesso administrativo do sistema.
- *
- * Regra do sistema: existe UM único login com perfil ADMIN (o admin master).
- * Todo usuário ADMIN diferente dele é removido na inicialização.
- */
 @Service
 public class AdminMasterService {
 
@@ -40,10 +34,7 @@ public class AdminMasterService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    /**
-     * Apaga todos os usuários com perfil ADMIN, mantendo apenas o e-mail do admin master.
-     * Remove antes o carrinho e os pedidos do usuário para não violar chave estrangeira.
-     */
+    
     @Transactional
     public int removerAdminsExceto(String emailMaster) {
         List<Usuario> admins = usuarioRepository.findByRole(Role.ADMIN);
@@ -68,10 +59,7 @@ public class AdminMasterService {
         return removidos;
     }
 
-    /**
-     * Cria o admin master se ainda não existir e garante que as credenciais
-     * (nome, senha, perfil ADMIN e conta ativa) estejam sempre válidas.
-     */
+   
     @Transactional
     public Usuario garantirAdminMaster(String nome, String email, String senhaPura) {
         Usuario admin = usuarioRepository.findByEmail(email).orElseGet(Usuario::new);

@@ -41,6 +41,35 @@
 
         <button type="submit" class="btn btn-primary btn-block">Entrar</button>
       </form>
+
+      <!-- Etapa de confirmação: a conta existe, mas o código de 6 dígitos ainda não foi confirmado -->
+      <div id="etapaConfirmacao" style="display:none;">
+        <p class="auth-subtitle" style="margin-bottom:16px;">
+          A conta de <strong id="confirmacaoEmail"></strong> ainda não foi confirmada.
+          Digite o código de 6 dígitos que enviamos por e-mail para ativar o login.
+        </p>
+
+        <form id="confirmacaoForm">
+          <div class="form-group">
+            <label class="form-label" for="codigoLogin">Código de confirmação</label>
+            <input type="text" id="codigoLogin" class="form-input" placeholder="000000" inputmode="numeric"
+                   maxlength="6" pattern="[0-9]{6}" autocomplete="one-time-code"
+                   style="text-align:center; letter-spacing:8px; font-size:1.3rem;" required>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block">Confirmar e entrar</button>
+        </form>
+
+        <p style="text-align:center; margin-top:14px; font-size:0.9rem;">
+          Não recebeu o código?
+          <a href="#" id="btnReenviarCodigoLogin" style="color:var(--primary, #12b5d0); font-weight:600;">Reenviar código</a>
+        </p>
+
+        <p style="text-align:center; margin-top:10px; font-size:0.9rem;">
+          <a href="#" id="btnVoltarLogin" style="color:var(--text-secondary, #6b7280);">Voltar para o login</a>
+        </p>
+      </div>
+
     </div>
   </div>
 

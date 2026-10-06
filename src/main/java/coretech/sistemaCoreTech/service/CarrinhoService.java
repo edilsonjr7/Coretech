@@ -78,11 +78,36 @@ ItemCarrinho itemExistente = null;
         return carrinhoRepository.save(carrinho);
     }
 
+    /**
+     * Altera a quantidade de um item já existente no carrinho: valida o estoque,
+     * atualiza a quantidade e soma novamente o valor total do item no carrinho.
+     */
     @Transactional
-    public void limparCarrinho(Usuario usuario) {
+    public Carrinho atualizarQuantidade(Usuario usuario, Long itemId, Integer quantidade) {
+        Carrinho carrinho = buscarCarrinhoDoUsuario(usuario);
+
+        ItemCarrinho item = carrinho.getItens().stream()
+                .filter(i -> itemId.equals(i.getId()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Item não encontrado no carrinho"));
+
+        Produto produto = item.getProduto();
+        if (produto.getEstoque() == null || produto.getEstoque() < quantidade) {
+            throw new RuntimeException("Estoque insuficiente para o produto: " + produto.getNome());
+        }
+
+        item.setQuantidade(quantidade);
+        item.setPreco(produto.getPreco());
+
+        carrinho.recalcularTotal();
+        return carrinhoRepository.save(carrinho);
+    }
+
+    @Transactional
+    public Carrinho limparCarrinho(Usuario usuario) {
         Carrinho carrinho = buscarCarrinhoDoUsuario(usuario);
         carrinho.getItens().clear();
         carrinho.recalcularTotal();
-        carrinhoRepository.save(carrinho);
+        return carrinhoRepository.save(carrinho);
     }
 }

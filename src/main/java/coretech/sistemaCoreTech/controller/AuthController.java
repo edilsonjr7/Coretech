@@ -22,6 +22,7 @@ import coretech.sistemaCoreTech.enums.Role;
 import coretech.sistemaCoreTech.model.Usuario;
 import coretech.sistemaCoreTech.repository.UsuarioRepository;
 import coretech.sistemaCoreTech.security.JwtService;
+import coretech.sistemaCoreTech.service.EmailNaoEnviadoException;
 import coretech.sistemaCoreTech.service.LoggedUsersService;
 import coretech.sistemaCoreTech.service.VerificacaoService;
 
@@ -56,9 +57,12 @@ public class AuthController {
                     .body("Credenciais inválidas");
         }
 
+        // conta criada mas ainda não confirmada: o login só é liberado depois do
+        // código de 6 dígitos enviado por e-mail (HTTP 428 = confirmação pendente)
         if (!usuario.isAtivo()) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("Usuário não ativado. Digite o código de 6 números enviado para o seu e-mail para confirmar o cadastro.");
+            return ResponseEntity.status(HttpStatus.PRECONDITION_REQUIRED)
+                    .body("Conta não confirmada. Digite o código de 6 dígitos enviado para o seu e-mail "
+                            + "para ativar a conta e liberar o login.");
         }
 
         String token = jwtService.gerarToken(usuario.getEmail(), usuario.getId());
@@ -98,16 +102,20 @@ public class AuthController {
         usuario.setRole(Role.USER); // cadastro público cria SEMPRE usuário comum (cliente)
         usuario.setAtivo(false);
 
-        // gera o código de 6 números, salva o usuário inativo e envia o código por e-mail
-        VerificacaoService.Envio envio = verificacaoService.gerarEEnviar(usuario);
+        // gera o código de 6 dígitos, salva o usuário inativo e envia o código por e-mail (real)
+        try {
+            verificacaoService.gerarEEnviar(usuario);
+        } catch (EmailNaoEnviadoException e) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(
+                    "Conta criada, mas o e-mail de confirmação não foi enviado. " + e.getMessage()
+                            + " Quando o envio estiver funcionando, use \"Reenviar código\" para receber um novo código.");
+        }
 
-        String mensagem = envio.isEnviado()
-                ? "Cadastro realizado! Enviamos um código de 6 números para " + usuario.getEmail()
-                        + ". Digite o código para confirmar a criação da conta."
-                : "Cadastro realizado! O envio de e-mail está desabilitado neste ambiente, use o código abaixo para confirmar a conta.";
+        String mensagem = "Cadastro realizado! Enviamos um código de 6 dígitos para " + usuario.getEmail()
+                + ". Digite o código para ativar a conta e liberar o login.";
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new CodigoResponse(mensagem, usuario.getEmail(), envio.isEnviado(), envio.getCodigoDev()));
+                .body(new CodigoResponse(mensagem, usuario.getEmail(), true));
     }
 
     @PostMapping("/confirmar-codigo")
@@ -153,12 +161,15 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Conta já confirmada. Faça login para continuar.");
         }
 
-        VerificacaoService.Envio envio = verificacaoService.gerarEEnviar(usuario);
+        try {
+            verificacaoService.gerarEEnviar(usuario);
+        } catch (EmailNaoEnviadoException e) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .body("Não foi possível enviar um novo código. " + e.getMessage());
+        }
 
-        String mensagem = envio.isEnviado()
-                ? "Enviamos um novo código de 6 números para " + usuario.getEmail() + "."
-                : "Envio de e-mail desabilitado neste ambiente, use o novo código abaixo.";
+        String mensagem = "Enviamos um novo código de 6 dígitos para " + usuario.getEmail() + ".";
 
-        return ResponseEntity.ok(new CodigoResponse(mensagem, usuario.getEmail(), envio.isEnviado(), envio.getCodigoDev()));
+        return ResponseEntity.ok(new CodigoResponse(mensagem, usuario.getEmail(), true));
     }
 }

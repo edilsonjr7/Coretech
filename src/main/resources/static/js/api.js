@@ -1,5 +1,5 @@
-/* ============================================
-   GameStore - Camada de API (Backend Connection)
+﻿/* ============================================
+   Coretech - Camada de API (Backend Connection)
    ============================================ */
 
 const API = {
@@ -97,7 +97,11 @@ const API = {
 
     if (!res.ok) {
       const erro = await res.text();
-      throw new Error(erro || 'Credenciais inválidas');
+      const falha = new Error(erro || 'Credenciais inválidas');
+      falha.status = res.status;
+      // 428 = conta criada, mas o código de 6 dígitos ainda não foi confirmado
+      falha.precisaConfirmar = res.status === 428;
+      throw falha;
     }
 
     return res.json();
@@ -115,7 +119,7 @@ const API = {
       throw new Error(erro || 'Erro ao cadastrar');
     }
 
-    // resposta: { mensagem, email, emailEnviado, codigoDev }
+    // resposta: { mensagem, email, emailEnviado } - o codigo de 6 digitos vai SO por e-mail
     return res.json();
   },
 
@@ -235,6 +239,55 @@ const API = {
 
     if (!res.ok) throw new Error('Erro ao remover item');
     return res.json();
+  },
+
+  // Altera a quantidade de um item que já está no carrinho
+  async atualizarQuantidadeItem(itemId, quantidade) {
+    const token = localStorage.getItem('gs_token');
+    if (!token) throw new Error('Faça login');
+
+    const res = await fetch(`${this.baseUrl}/carrinho/itens/${itemId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ quantidade })
+    });
+
+    if (!res.ok) throw new Error(await extrairMensagemErro(res, 'Erro ao atualizar a quantidade'));
+    return res.json();
+  },
+
+  // Esvazia o carrinho do usuário logado
+  async limparCarrinho() {
+    const token = localStorage.getItem('gs_token');
+    if (!token) throw new Error('Faça login');
+
+    const res = await fetch(`${this.baseUrl}/carrinho`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!res.ok) throw new Error(await extrairMensagemErro(res, 'Erro ao limpar o carrinho'));
+    return res.json();
+  },
+
+  // ============ PEDIDOS ============
+
+  // Finaliza a compra: gera o pedido, baixa o estoque, envia o comprovante por e-mail
+  // e devolve o recibo do pedido (id, cliente, email, data, total, itens, status do e-mail)
+  async realizarCheckout() {
+    const token = localStorage.getItem('gs_token');
+    if (!token) throw new Error('Faça login para finalizar a compra');
+
+    const res = await fetch(`${this.baseUrl}/pedidos/checkout`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!res.ok) throw new Error(await extrairMensagemErro(res, 'Erro ao finalizar a compra'));
+    return res.json();
   }
 };
 
@@ -247,6 +300,23 @@ function formatarPreco(valor) {
     style: 'currency',
     currency: 'BRL'
   }).format(valor);
+}
+
+// Tenta extrair a mensagem de erro da resposta do backend sem quebrar a tela
+async function extrairMensagemErro(res, mensagemPadrao) {
+  try {
+    const texto = await res.text();
+    if (!texto) return mensagemPadrao;
+
+    try {
+      const json = JSON.parse(texto);
+      return json.message || json.mensagem || mensagemPadrao;
+    } catch (e) {
+      return texto;
+    }
+  } catch (e) {
+    return mensagemPadrao;
+  }
 }
 
 function getToken() {

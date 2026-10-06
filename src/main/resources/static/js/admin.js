@@ -1,5 +1,5 @@
-/* ============================================
-   GameStore - Painel Admin (CRUD de Produtos)
+﻿/* ============================================
+   Coretech - Painel Admin (CRUD de Produtos)
    ============================================ */
 
 document.addEventListener('DOMContentLoaded', () => {

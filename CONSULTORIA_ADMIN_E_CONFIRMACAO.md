@@ -31,13 +31,17 @@ app.admin.email=${APP_ADMIN_EMAIL:admin@gmail.com}
 ### DTOs (`src/main/java/coretech/sistemaCoreTech/dto/`)
 - `ConfirmarCodigoRequest.java` — corpo de `POST /auth/confirmar-codigo` (email + código validado com `\d{6}`)
 - `ReenviarCodigoRequest.java` — corpo de `POST /auth/reenviar-codigo` (email)
-- `CodigoResponse.java` — resposta de cadastro/reenvio (`mensagem`, `email`, `emailEnviado`, `codigoDev`)
+- `CodigoResponse.java` — resposta de cadastro/reenvio (`mensagem`, `email`, `emailEnviado`)
 
 ### Services
 - `service/VerificacaoService.java` — gera o código de 6 números (`SecureRandom`), aplica validade
   (`app.verificacao.codigo-expiracao-minutos`, padrão 15 min), envia por e-mail, valida o código
   digitado e ativa a conta.
+- `service/EmailNaoEnviadoException.java` — lançada quando o SMTP não está configurado ou o envio falha
+  (a API responde 503 com o motivo e **nenhum código é "inventado"** no log ou na resposta).
 - `service/AdminMasterService.java` — apaga todos os usuários `ADMIN` exceto o admin master
+  (removendo antes carrinho e pedidos para não violar chave estrangeira) e cria/atualiza o admin master.
+
   (removendo antes carrinho e pedidos para não violar chave estrangeira) e cria/atualiza o admin master.
 
 ---
@@ -51,12 +55,13 @@ app.admin.email=${APP_ADMIN_EMAIL:admin@gmail.com}
 | `model/Usuario.java` | Novos campos `codigo_confirmacao` e `codigo_expira_em`. `@JsonIgnore` em `getSenha()`, `getCodigoConfirmacao()` e `getCodigoExpiraEm()` para nunca devolver hash de senha nem o código na API |
 | `repository/UsuarioRepository.java` | Novo `findByRole(Role)` (usado para apagar admins antigos) |
 | `repository/PedidoRepository.java` | Novo `findByUsuarioId(Long)` (limpeza de dados do admin removido) |
-| `service/EmailService.java` | Novo `enviarCodigoConfirmacao(para, nome, codigo)` e `isEmailHabilitado()`. Com `app.email.habilitado=false` o código é registrado no log da aplicação |
-| `controller/AuthController.java` | `POST /auth/cadastro` agora cria `USER` **inativo** + código; novos `POST /auth/confirmar-codigo` e `POST /auth/reenviar-codigo`; login bloqueia conta não confirmada com mensagem explicando o código |
+| `service/EmailService.java` | `enviarCodigoConfirmacao(para, nome, codigo)` com envio **sempre real** por SMTP: se `SMTP_HOST`/`SMTP_USER` não estiverem preenchidos ou o envio falhar, lança `EmailNaoEnviadoException` (o código não vai para o log nem para a resposta) |
+| `controller/AuthController.java` | `POST /auth/cadastro` agora cria `USER` **inativo** + código; novos `POST /auth/confirmar-codigo` e `POST /auth/reenviar-codigo`; **login responde 428** (`PRECONDITION_REQUIRED`) enquanto o código não for confirmado; falha de e-mail responde **503** com o motivo |
 | `resources/application.properties` | Novas chaves `app.admin.email/senha/nome` e `app.verificacao.codigo-expiracao-minutos` |
-| `static/js/api.js` | `cadastro()` retorna JSON; novos `confirmarCodigo()`, `reenviarCodigo()`, `listarUsuarios()`, `listarUsuariosLogados()` |
-| `static/js/auth.js` | Login redireciona por perfil (`ADMIN` → `/admin.html`, cliente → `/`); cadastro em 2 etapas com código e botão "Reenviar código" |
-| `static/cadastro.html` | Nova etapa de confirmação (campo de 6 dígitos + reenvio) |
+| `static/js/api.js` | `cadastro()` retorna JSON; novos `confirmarCodigo()`, `reenviarCodigo()`, `listarUsuarios()`, `listarUsuariosLogados()`; `login()` detecta HTTP 428 e marca `precisaConfirmar` |
+| `static/js/auth.js` | Login redireciona por perfil (`ADMIN` → `/admin.html`, cliente → `/`); ao receber 428 abre a etapa de confirmação direto na tela de login (com reenvio) e, depois de confirmar, entra sozinho; cadastro em 2 etapas |
+| `static/login.html` | Nova etapa "Confirme sua conta" (campo de 6 dígitos + reenvio + voltar para o login) |
+| `static/cadastro.html` | Nova etapa de confirmação (campo de 6 dígitos + reenvio). REMOVIDO o aviso de "código de desenvolvimento" |
 | `static/admin.html` | Abas **Produtos** / **Usuários**, cards de estatísticas de usuários e tabela com todos os usuários. Novos estilos (abas, badges de perfil/status) |
 | `static/js/admin.js` | Carrega e renderiza todos os usuários (`GET /admin/usuarios`), estatísticas (total, clientes, admins, ativas), busca com filtro e troca de abas |
 
@@ -69,28 +74,39 @@ app.admin.email=${APP_ADMIN_EMAIL:admin@gmail.com}
    (`SecureRandom`, ex.: `042317`) válido por 15 minutos e envia por e-mail.
 3. A tela troca para a etapa do código: o cliente digita os 6 números → `POST /auth/confirmar-codigo`.
 4. Só então a conta é ativada (`ativo=true`) e o login é liberado. Antes disso o login responde
-   403 com "Usuário não ativado. Digite o código de 6 números enviado para o seu e-mail...".
+   **428 (`PRECONDITION_REQUIRED`)** com a mensagem "Conta não confirmada. Digite o código de 6 dígitos...".
+   A própria tela de login entende esse 428, abre o campo do código, confirma e entra sozinha.
 5. Se o código expirar ou não chegar, o cliente usa "Reenviar código" → `POST /auth/reenviar-codigo`
    (gera um novo código e invalida o anterior).
 
 ### Sobre o envio real de e-mail (transparência)
-Igual ao comprovante de compra, o envio depende de SMTP. Por padrão o projeto está com
-`app.email.habilitado=false`. Nesse modo:
-- o código **não é enviado por e-mail**;
-- o código aparece **no log do backend** (`E-mail desabilitado. Código de confirmação de ...: 123456`);
-- a resposta da API inclui `codigoDev` e a tela exibe o aviso "Modo desenvolvimento ... seu código é ...".
+**Não existe mais código fictício.** O `codigoDev`, o aviso "Modo desenvolvimento" e o log
+`E-mail desabilitado. Código de confirmação de ...: 123456` foram removidos: o código de 6 dígitos
+só existe no e-mail recebido pelo cliente. Consequências:
 
-Para enviar de verdade, preencha o `.env`:
+- sem SMTP configurado (ou com falha de envio) o cadastro responde **503** explicando o motivo — a conta
+  fica criada e inativa, e o cliente pode usar "Reenviar código" quando o SMTP estiver ajustado;
+- o login continua bloqueado (428) enquanto o código não for confirmado, ou seja, sem e-mail funcionando
+  não é possível entrar como cliente novo;
+- `app.email.habilitado` agora controla **apenas o comprovante de compra** (que é opcional). O código de
+  confirmação é sempre enviado de verdade.
+
+Preencha o `.env` com um SMTP real (no Gmail, use uma **senha de app**):
 
 ```
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=seuemail@gmail.com
 SMTP_PASSWORD=senha-de-app-do-gmail
+SMTP_AUTH=true
+SMTP_STARTTLS=true
 APP_EMAIL_HABILITADO=true
 ```
 
-Com o SMTP habilitado, `codigoDev` volta sempre `null` e o código só existe no e-mail do cliente.
+> Validação feita no projeto: com um SMTP local de teste, o cadastro entregou o e-mail
+> (assunto "CoreTech - Confirme seu cadastro"), o login respondeu 428 antes da confirmação, a
+> confirmação com o código do e-mail ativou a conta e o login seguinte liberou o token JWT.
+> Sem SMTP, o cadastro respondeu 503 e nenhuma resposta da API trouxe código de 6 dígitos.
 
 ---
 

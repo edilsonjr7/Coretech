@@ -1,5 +1,5 @@
-/* ============================================
-   GameStore - Lógica Principal (Home)
+﻿/* ============================================
+   Coretech - Lógica Principal (Home)
    ============================================ */
 
 // ============ DADOS FICTÍCIOS (fallback) ============
@@ -152,7 +152,7 @@ function renderHeader() {
   header.innerHTML = `
     <div class="container header-inner">
       <a href="/" class="logo">
-        GameStore
+        Coretech
         <span class="logo-icon"></span>
       </a>
 
