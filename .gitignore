@@ -37,3 +37,6 @@ build/
 
 .RELATORIO_MODIFICACOES.md
 .TODO.md
+
+### Logs de execucao local (testes) ###
+app_*.log

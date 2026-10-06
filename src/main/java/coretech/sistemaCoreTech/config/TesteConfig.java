@@ -18,7 +18,10 @@ import coretech.sistemaCoreTech.repository.ProdutoRepository;
 import coretech.sistemaCoreTech.repository.UsuarioRepository;
 
 @Configuration
-@Profile("test")
+// Seed idempotente: roda nos perfis "test" (H2 em memoria) e "prod" (MySQL) — so cria
+// o que ainda nao existe, entao nunca duplica dados. Garante que a loja tenha produtos
+// ao migrar para o banco MySQL.
+@Profile({ "test", "prod" })
 @Order(1)
 public class TesteConfig implements CommandLineRunner {
 
