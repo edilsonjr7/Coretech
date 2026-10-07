@@ -27,6 +27,26 @@ const API = {
 
   // ============ PRODUTOS (ADMIN - CRUD) ============
 
+  // Envia uma imagem escolhida no PC e devolve a URL publica (/uploads/...)
+  async uploadImagem(arquivo) {
+    const token = localStorage.getItem('gs_token');
+    if (!token) throw new Error('Faça login como admin');
+
+    const formData = new FormData();
+    formData.append('arquivo', arquivo);
+
+    const res = await fetch(`${this.baseUrl}/admin/imagens`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData
+    });
+
+    if (!res.ok) throw new Error(await extrairMensagemErro(res, 'Erro ao enviar a imagem'));
+
+    const json = await res.json();
+    return json.url;
+  },
+
   async criarProduto(produto) {
     const token = localStorage.getItem('gs_token');
     if (!token) throw new Error('Faça login como admin');

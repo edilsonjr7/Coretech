@@ -80,6 +80,7 @@ public class SegurityConfig {
                     "/css/**",
                     "/js/**",
                     "/images/**",
+                    "/uploads/**",
                     "/comprovantes/**",
                     "/favicon.ico",
                     "/error"

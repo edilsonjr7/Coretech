@@ -21,6 +21,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const buscaProduto = document.getElementById('buscaProduto');
   const adminAlert = document.getElementById('adminAlert');
 
+  // imagem do produto (URL ou arquivo do PC)
+  const campoImagemUrl = document.getElementById('imagem');
+  const campoImagemArquivo = document.getElementById('imagemArquivo');
+  const imagePreview = document.getElementById('imagePreview');
+  const imagePreviewImg = document.getElementById('imagePreviewImg');
+  const btnRemoverImagem = document.getElementById('btnRemoverImagem');
+
   // aba de usuários
   const abas = document.querySelectorAll('.admin-tab');
   const abaProdutos = document.getElementById('abaProdutos');
@@ -244,6 +251,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('preco').value = '';
     document.getElementById('estoque').value = '';
     document.getElementById('imagem').value = '';
+    limparImagemSelecionada();
+    atualizarPreviewImagem();
     document.getElementById('btnSalvar').textContent = 'Salvar no Banco de Dados';
     modalProduto.classList.add('active');
   }
@@ -263,6 +272,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('imagem').value = produto.imagemProduto && produto.imagemProduto.length > 0
       ? produto.imagemProduto[0]
       : '';
+    limparImagemSelecionada();
+    atualizarPreviewImagem();
     document.getElementById('btnSalvar').textContent = 'Atualizar no Banco de Dados';
     modalProduto.classList.add('active');
   }
@@ -270,6 +281,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function fecharModal() {
     modalProduto.classList.remove('active');
     produtoForm.reset();
+    limparImagemSelecionada();
+    atualizarPreviewImagem();
     editandoId = null;
   }
 
@@ -296,6 +309,82 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   }
+
+  // ============ IMAGEM DO PRODUTO (URL ou arquivo do PC) ============
+  let previewObjectUrl = null;
+
+  function atualizarPreviewImagem() {
+    const arquivo = campoImagemArquivo.files && campoImagemArquivo.files[0];
+    const url = campoImagemUrl.value.trim();
+    const fonte = arquivo ? arquivo : (url || '');
+
+    if (previewObjectUrl) {
+      URL.revokeObjectURL(previewObjectUrl);
+      previewObjectUrl = null;
+    }
+
+    if (!fonte) {
+      imagePreview.hidden = true;
+      imagePreviewImg.removeAttribute('src');
+      return;
+    }
+
+    if (arquivo) {
+      previewObjectUrl = URL.createObjectURL(arquivo);
+      imagePreviewImg.src = previewObjectUrl;
+    } else {
+      imagePreviewImg.src = url;
+    }
+    imagePreview.hidden = false;
+  }
+
+  function limparImagemSelecionada() {
+    campoImagemArquivo.value = '';
+    if (previewObjectUrl) {
+      URL.revokeObjectURL(previewObjectUrl);
+      previewObjectUrl = null;
+    }
+  }
+
+  campoImagemArquivo.addEventListener('change', () => {
+    const arquivo = campoImagemArquivo.files && campoImagemArquivo.files[0];
+    if (arquivo) {
+      if (!arquivo.type.startsWith('image/')) {
+        mostrarAlerta('Selecione um arquivo de imagem (JPG, PNG, WEBP ou GIF).', 'error');
+        limparImagemSelecionada();
+        return;
+      }
+      if (arquivo.size > 5 * 1024 * 1024) {
+        mostrarAlerta('A imagem pode ter no máximo 5MB.', 'error');
+        limparImagemSelecionada();
+        return;
+      }
+      // arquivo do PC tem prioridade sobre a URL
+      campoImagemUrl.value = '';
+    }
+    atualizarPreviewImagem();
+  });
+
+  // Digitar uma URL limpa o arquivo escolhido anteriormente
+  campoImagemUrl.addEventListener('input', () => {
+    if (campoImagemUrl.value.trim()) {
+      limparImagemSelecionada();
+    }
+    atualizarPreviewImagem();
+  });
+
+  imagePreviewImg.addEventListener('error', () => {
+    if (imagePreviewImg.src && !imagePreviewImg.src.startsWith('blob:')) {
+      imagePreview.hidden = true;
+      mostrarAlerta('Não foi possível carregar essa imagem. Verifique a URL ou envie um arquivo.', 'error');
+    }
+  });
+
+  btnRemoverImagem.addEventListener('click', () => {
+    campoImagemUrl.value = '';
+    limparImagemSelecionada();
+    atualizarPreviewImagem();
+  });
 
   // ============ EVENTOS ============
 
@@ -330,26 +419,35 @@ document.addEventListener('DOMContentLoaded', () => {
     const preco = parseFloat(document.getElementById('preco').value);
     const estoque = parseInt(document.getElementById('estoque').value);
     const imagem = document.getElementById('imagem').value.trim();
+    const imagemArquivo = document.getElementById('imagemArquivo').files[0];
 
     if (!nome || isNaN(preco) || isNaN(estoque)) {
       mostrarAlerta('Preencha todos os campos obrigatórios.', 'error');
       return;
     }
 
-    const produtoData = {
-      nome,
-      categoria,
-      descricao,
-      preco,
-      estoque,
-      imagemProduto: imagem ? [imagem] : []
-    };
-
     const btnSalvar = document.getElementById('btnSalvar');
+    const textoOriginal = editandoId ? 'Atualizar no Banco de Dados' : 'Salvar no Banco de Dados';
     btnSalvar.disabled = true;
     btnSalvar.textContent = 'Salvando no banco de dados...';
 
     try {
+      // Imagem escolhida no PC: faz o upload e usa a URL devolvida pelo servidor
+      let imagemUrl = imagem;
+      if (imagemArquivo) {
+        btnSalvar.textContent = 'Enviando imagem...';
+        imagemUrl = await API.uploadImagem(imagemArquivo);
+      }
+
+      const produtoData = {
+        nome,
+        categoria,
+        descricao,
+        preco,
+        estoque,
+        imagemProduto: imagemUrl ? [imagemUrl] : []
+      };
+
       if (editandoId) {
         await API.atualizarProduto(editandoId, produtoData);
         mostrarAlerta('Produto atualizado com sucesso no banco de dados!', 'success');
@@ -364,7 +462,7 @@ document.addEventListener('DOMContentLoaded', () => {
       mostrarAlerta(err.message || 'Erro ao salvar produto', 'error');
     } finally {
       btnSalvar.disabled = false;
-      btnSalvar.textContent = editandoId ? 'Atualizar no Banco de Dados' : 'Salvar no Banco de Dados';
+      btnSalvar.textContent = textoOriginal;
     }
   });
 

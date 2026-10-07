@@ -40,3 +40,6 @@ build/
 
 ### Logs de execucao local (testes) ###
 app_*.log
+
+### Imagens de produtos enviadas pelo admin (criadas em tempo de execucao) ###
+uploads/

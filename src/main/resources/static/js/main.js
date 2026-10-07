@@ -347,7 +347,8 @@ function renderProdutos() {
           ${isFav ? ICONES.coracaoCheio : ICONES.coracao}
         </button>
         <div class="product-image">
-          <img src="${p.imagem}" alt="${p.nome}" loading="lazy">
+          <img src="${p.imagem}" alt="${p.nome}" loading="lazy"
+               onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1606813907291-d86efa9b94db?q=80&w=800&auto=format&fit=crop'">
         </div>
         <div class="product-info">
           <h3 class="product-name">${p.nome}</h3>
