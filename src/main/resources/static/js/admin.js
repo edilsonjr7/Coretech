@@ -251,6 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('preco').value = '';
     document.getElementById('estoque').value = '';
     document.getElementById('imagem').value = '';
+    document.getElementById('specs').value = '';
     limparImagemSelecionada();
     atualizarPreviewImagem();
     document.getElementById('btnSalvar').textContent = 'Salvar no Banco de Dados';
@@ -272,6 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('imagem').value = produto.imagemProduto && produto.imagemProduto.length > 0
       ? produto.imagemProduto[0]
       : '';
+    document.getElementById('specs').value = (produto.specs || []).join('\n');
     limparImagemSelecionada();
     atualizarPreviewImagem();
     document.getElementById('btnSalvar').textContent = 'Atualizar no Banco de Dados';
@@ -420,6 +422,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const estoque = parseInt(document.getElementById('estoque').value);
     const imagem = document.getElementById('imagem').value.trim();
     const imagemArquivo = document.getElementById('imagemArquivo').files[0];
+    // Especificacoes: uma por linha no campo do formulario
+    const specs = document.getElementById('specs').value
+      .split('\n')
+      .map(s => s.trim())
+      .filter(Boolean);
 
     if (!nome || isNaN(preco) || isNaN(estoque)) {
       mostrarAlerta('Preencha todos os campos obrigatórios.', 'error');
@@ -445,7 +452,8 @@ document.addEventListener('DOMContentLoaded', () => {
         descricao,
         preco,
         estoque,
-        imagemProduto: imagemUrl ? [imagemUrl] : []
+        imagemProduto: imagemUrl ? [imagemUrl] : [],
+        specs
       };
 
       if (editandoId) {

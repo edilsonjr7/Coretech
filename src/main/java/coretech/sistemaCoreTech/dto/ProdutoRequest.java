@@ -24,6 +24,8 @@ public class ProdutoRequest {
 
     private List<String> imagemProduto;
 
+    private List<String> specs;
+
     public ProdutoRequest() {
     }
 
@@ -65,5 +67,13 @@ public class ProdutoRequest {
 
     public void setImagemProduto(List<String> imagemProduto) {
         this.imagemProduto = imagemProduto;
+    }
+
+    public List<String> getSpecs() {
+        return specs;
+    }
+
+    public void setSpecs(List<String> specs) {
+        this.specs = specs;
     }
 }

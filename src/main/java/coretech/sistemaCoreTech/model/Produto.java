@@ -6,6 +6,7 @@ import java.util.List;
 
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -26,6 +27,13 @@ public class Produto {
 
     @ElementCollection
     private List<String> imagemProduto = new ArrayList<>();
+
+    // Especificacoes tecnicas exibidas no modal da loja (cada item = um chip de spec).
+    // EAGER para carregar junto do produto: evita LazyInitializationException fora
+    // de uma sessao Hibernate (ex.: seed de produtos) e garante que a API sempre
+    // devolva as specs sem depender de spring.jpa.open-in-view.
+    @ElementCollection(fetch = FetchType.EAGER)
+    private List<String> specs = new ArrayList<>();
 
     public long getId() {
         return id;
@@ -81,6 +89,14 @@ public class Produto {
 
     public void setImagemProduto(List<String> imagemProduto) {
         this.imagemProduto = imagemProduto;
+    }
+
+    public List<String> getSpecs() {
+        return specs;
+    }
+
+    public void setSpecs(List<String> specs) {
+        this.specs = specs;
     }
 
     public Produto(long id, String nome, String descricao, BigDecimal preco, Integer estoque,

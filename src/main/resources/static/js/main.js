@@ -439,6 +439,17 @@ function abrirModal(produto) {
 
   const isFav = favoritos.includes(produto.id);
 
+  // Mostra apenas as especificacoes do proprio produto. Sem fallback fixo:
+  // antes, todo produto sem specs exibia as specs da PlayStation 5.
+  const specs = Array.isArray(produto.specs) ? produto.specs.filter(Boolean) : [];
+  const specsHtml = specs.length > 0 ? `
+          <div class="modal-specs">
+            <p class="modal-specs-title">Especificações</p>
+            <div class="specs-list">
+              ${specs.map(spec => `<span class="spec-item">${spec}</span>`).join('')}
+            </div>
+          </div>` : '';
+
   overlay.innerHTML = `
     <div class="modal">
       <div class="modal-content">
@@ -457,14 +468,7 @@ function abrirModal(produto) {
             <span class="rating-count">(${produto.avaliacoes || 0} avaliações)</span>
           </div>
           <p class="modal-description">${produto.descricao}</p>
-          <div class="modal-specs">
-            <p class="modal-specs-title">Especificações</p>
-            <div class="specs-list">
-              ${(produto.specs || ['SSD 825GB', '4K @ 120Hz', 'GPU 10.28 TFLOPS', 'Ray Tracing']).map(spec => `
-                <span class="spec-item">${spec}</span>
-              `).join('')}
-            </div>
-          </div>
+          ${specsHtml}
           <div class="modal-price">${formatarPreco(produto.preco)}</div>
           <div class="modal-actions">
             <button class="btn btn-primary" id="modalAddCart">

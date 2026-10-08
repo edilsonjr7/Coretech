@@ -3,6 +3,7 @@ package coretech.sistemaCoreTech.config;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import coretech.sistemaCoreTech.enums.Role;
 
@@ -35,6 +36,19 @@ public class TesteConfig implements CommandLineRunner {
         this.passwordEncoder = passwordEncoder; // a senha vira uma hash de criptografia @a$5sfd para proteger a senha e não usar senha String
     }
 
+    // ==== ESPECIFICACOES PADRAO DE CADA PRODUTO ====
+    // Mude os valores abaixo para alterar as specs iniciais de cada produto.
+    // Servem tambem para preencher bancos criados antes do campo "specs" existir.
+    private static final Map<String, List<String>> SPECS_PADRAO = Map.ofEntries(
+            Map.entry("PlayStation 5", List.of("SSD 825GB", "4K @ 120Hz", "GPU 10.28 TFLOPS", "Ray Tracing")),
+            Map.entry("Xbox Series X", List.of("SSD 1TB", "4K @ 120Hz", "GPU 12 TFLOPS", "Quick Resume")),
+            Map.entry("Nintendo Switch OLED", List.of("Tela OLED 7\"", "64GB", "Modo Híbrido", "Joy-Con")),
+            Map.entry("Controle DualSense", List.of("Bluetooth 5.1", "Feedback Háptico", "Gatilhos Adaptativos", "Bateria 12h")),
+            Map.entry("Controle Xbox Elite", List.of("Paddles", "Sticks Intercambiáveis", "Bluetooth", "App Xbox")),
+            Map.entry("Headset Gamer Pro", List.of("Surround 7.1", "Microfone com Noise Gate", "RGB", "USB/3.5mm")),
+            Map.entry("Headset Sem Fio Pulse", List.of("Áudio 3D", "Bateria 30h", "Sem Fio", "Microfone Retrátil")),
+            Map.entry("Teclado Mecânico RGB", List.of("Switches Blue", "RGB por Tecla", "Alumínio", "Anti-Ghosting")));
+
     @Override
     public void run(String... args) throws Exception {
 
@@ -55,6 +69,25 @@ public class TesteConfig implements CommandLineRunner {
             Produto p7 = new Produto(0, "Headset Sem Fio Pulse", "Headset sem fio com áudio 3D e bateria de 30 horas de duração.", new BigDecimal("899.00"), 18, "Headsets", List.of("https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?q=80&w=800&auto=format&fit=crop"));
             Produto p8 = new Produto(0, "Teclado Mecânico RGB", "Teclado mecânico com switches blue, RGB por tecla e estrutura em alumínio.", new BigDecimal("599.00"), 22, "Acessórios", List.of("https://images.unsplash.com/photo-1587829741301-dc798b83add3?q=80&w=800&auto=format&fit=crop"));
             produtoRepository.saveAll(Arrays.asList(p1, p2, p3, p4, p5, p6, p7, p8));
+        }
+
+        // ==== Backfill das especificacoes ====
+        // O banco MySQL ja tinha produtos criados antes de o campo "specs" existir,
+        // entao eles voltariam sem especificacoes. Preenche as specs padrao de cada
+        // produto que ainda nao tem nenhuma. O backfill so roda enquanto NENHUM
+        // produto tem specs, assim edicoes feitas pelo painel admin nunca sao
+        // sobrescritas nas proximas inicializacoes.
+        List<Produto> todosProdutos = produtoRepository.findAll();
+        boolean algumProdutoComSpecs = todosProdutos.stream()
+                .anyMatch(p -> p.getSpecs() != null && !p.getSpecs().isEmpty());
+        if (!algumProdutoComSpecs) {
+            for (Produto produto : todosProdutos) {
+                List<String> specs = SPECS_PADRAO.get(produto.getNome());
+                if (specs != null) {
+                    produto.setSpecs(specs);
+                    produtoRepository.save(produto);
+                }
+            }
         }
 
         System.out.println(">>> Seed de cliente e produtos gamers inserido no banco com sucesso <<<");
