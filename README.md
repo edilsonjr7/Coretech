@@ -65,25 +65,6 @@ Spring Boot, que expõe a API REST e valida cada requisição com Spring Securit
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-**Fluxo de uma requisição** (exemplo: adicionar item ao carrinho):
-
-1. `carrinho.html` chama `fetch("/carrinho/itens", { method: "POST", headers: { Authorization: Bearer <JWT> } })`;
-2. o `JwtAuthFilter` valida a assinatura/expiração do token e injeta o usuário autenticado no contexto
-   (sem token ou sem permissão → `403`, resposta padrão do Spring Security);
-3. o `CarrinhoController` recebe a requisição e delega ao `CarrinhoService`;
-4. o `CarrinhoService` aplica as regras (produto existe, estoque, quantidade) e usa o
-   `CarrinhoRepository` / `ItemCarrinhoRepository`;
-5. o Spring Data JPA grava no MySQL e o objeto `Carrinho` atualizado volta como JSON ao frontend.
-
-Pontos-chave do desenho:
-
-- **Separação de responsabilidades:** controller só recebe/retorna HTTP; serviço concentra a regra de
-  negócio; repositório é a única camada que fala com o banco (JPA/Hibernate).
-- **Segurança na borda:** as regras de acesso ficam centralizadas em `SegurityConfig`, não nos controllers.
-- **Serviços auxiliares:** `EmailService` (SMTP) e `PdfService` (OpenPDF) são acionados pelos serviços —
-  código de confirmação no cadastro e comprovante no checkout.
-- **Infra:** imagens de produto são salvas em `./uploads/` e servidas em `/uploads/**` (`WebConfig`);
-  comprovantes PDF ficam em `./comprovantes/`.
 
 ## Pré-requisitos
 
@@ -115,11 +96,7 @@ SMTP_STARTTLS=true
 APP_EMAIL_HABILITADO=true
 ```
 
-> ⚠️ O `.env` **não é versionado**. Nunca commite credenciais.
-> O cadastro de clientes **exige SMTP funcional**: o código de confirmação de 6 dígitos é
-> sempre enviado por e-mail real. Sem SMTP configurado, o cadastro falha com mensagem clara.
-
-Variáveis opcionais (com valores padrão definidos em `application.properties`):
+> 
 
 | Variável | Padrão | Descrição |
 |---|---|---|
@@ -132,7 +109,7 @@ Variáveis opcionais (com valores padrão definidos em `application.properties`)
 
 ## Como rodar
 
-### 1. Perfil `prod` — MySQL (padrão)
+### Perfil `prod` — MySQL (padrão)
 
 Certifique-se de que o MySQL está no ar e que o banco existe:
 
@@ -154,18 +131,11 @@ No Linux/macOS:
 
 Ou a partir da IDE (classe principal: `coretech.sistemaCoreTech.SistemaCoreTechApplication`).
 
-### 2. Perfil `test` — H2 em memória (sem MySQL)
-
-Edite `src/main/resources/application.properties` e troque:
-
-```properties
-spring.profiles.active=prod   # →   spring.profiles.active=test
-```
 
 Assim não é necessário MySQL nem `.env` de banco; o console H2 fica em `http://localhost:8080/h2-console`
 (JDBC URL: `jdbc:h2:mem:testdb`, usuário `sa`, sem senha). Os dados são apagados a cada reinício.
 
-### 3. Acessar a aplicação
+### Acessar a aplicação
 
 Abra **http://localhost:8080** (a porta padrão do Spring, nenhuma `server.port` configurada).
 
@@ -192,11 +162,6 @@ Catálogo inicial: 8 produtos. Para alterar o admin, use `APP_ADMIN_EMAIL` / `AP
 
 ## API REST — endpoints representativos
 
-Base URL: `http://localhost:8080`. Todas as rotas abaixo **existem no código**
-(`src/main/java/coretech/sistemaCoreTech/controller/`) e foram verificadas em execução real.
-O nível de acesso é definido em `SegurityConfig.securityFilterChain`: rotas protegidas exigem o
-header `Authorization: Bearer <token>` (token obtido no `POST /auth/login`) — sem ele a resposta é
-`403 Forbidden`.
 
 ### Autenticação e cadastro — público (`/auth/**`)
 
@@ -279,13 +244,3 @@ Coretech/
 - Painel administrativo (`/admin.html`) com gestão de produtos (CRUD com upload de imagens)
 - Autenticação JWT e autorização por perfil (`ADMIN` / `USER`)
 
-## Solução de problemas
-
-- **`Port already in use` (8080):** outra instância da aplicação já está no ar — encerre-a
-  (ou o processo da IDE/terminal anterior) antes de subir de novo.
-- **Cadastro falha informando problema de e-mail:** o SMTP está vazio ou incorreto no `.env`.
-- **`Access Denied` no painel admin:** a rota `/admin/**` exige o perfil `ADMIN`
-  (faça login com `admin@gmail.com`).
-- **Quer ver alterações no frontend sem reiniciar:** alterações em `static/` são servidas direto,
-  mas o navegador cacheia — use **Ctrl+F5** (hard refresh). Depois de um `mvnw compile`, a cópia
-  em `target/classes/static/` também é atualizada.
