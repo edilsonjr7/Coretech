@@ -1,5 +1,5 @@
 /* ============================================
-   Coretech - Lógica de Autenticação
+      Autenticação
    ============================================ */
 
 document.addEventListener('DOMContentLoaded', () => {

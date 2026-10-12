@@ -916,7 +916,8 @@ input, select, textarea {
 }
 
 .modal-actions .btn {
-  flex: 1;
+  flex: 0 1 auto;
+  align-self: center;
 }
 
 .modal-fav {

@@ -471,7 +471,7 @@ function abrirModal(produto) {
           ${specsHtml}
           <div class="modal-price">${formatarPreco(produto.preco)}</div>
           <div class="modal-actions">
-            <button class="btn btn-primary" id="modalAddCart">
+            <button class="btn btn-primary btn-sm" id="modalAddCart">
               ${ICONES.carrinho}
               Adicionar ao Carrinho
             </button>
