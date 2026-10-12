@@ -1,7 +1,7 @@
 # Coretech
 
 Sistema de e-commerce full-stack: backend **Spring Boot** com API REST e frontend estático
-(HTML/CSS/JS puro) servido pelo próprio servidor.
+(HTML/CSS/JS puro), criei esse projeto mirando melhorar meus conhecimentos em java.
 
 ## Stack
 
@@ -132,8 +132,6 @@ No Linux/macOS:
 Ou a partir da IDE (classe principal: `coretech.sistemaCoreTech.SistemaCoreTechApplication`).
 
 
-Assim não é necessário MySQL nem `.env` de banco; o console H2 fica em `http://localhost:8080/h2-console`
-(JDBC URL: `jdbc:h2:mem:testdb`, usuário `sa`, sem senha). Os dados são apagados a cada reinício.
 
 ### Acessar a aplicação
 
@@ -204,8 +202,7 @@ Catálogo inicial: 8 produtos. Para alterar o admin, use `APP_ADMIN_EMAIL` / `AP
 | GET | `/admin/usuarios` | Lista todos os usuários |
 | GET | `/admin/usuarios-logados` | Lista os usuários com sessão ativa |
 
-Rotas estáticas (sem token): `/`, `*.html`, `/css/**`, `/js/**`, `/images/**` e `/uploads/**`
-(imagens enviadas via `/admin/imagens`).
+
 
 ## Testes
 
