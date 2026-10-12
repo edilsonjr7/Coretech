@@ -14,6 +14,77 @@ Sistema de e-commerce full-stack: backend **Spring Boot** com API REST e fronten
 | Build | Maven (wrapper incluso: `mvnw` / `mvnw.cmd`) |
 | Extras | Lombok, OpenPDF/PDFBox (comprovantes), e-mail SMTP (confirmação de cadastro) |
 
+## Arquitetura
+
+O sistema é uma aplicação **monolítica em camadas**: o frontend estático é servido pelo próprio
+Spring Boot, que expõe a API REST e valida cada requisição com Spring Security antes de repassá-la
+à camada de serviço, única responsável por tocar o banco.
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  FRONTEND — HTML + CSS + JS puro (src/main/resources/static/)       │
+│  index.html · login.html · cadastro.html · carrinho.html ·          │
+│  perfil.html · admin.html   (servidos pelo próprio Spring Boot)     │
+└───────────────────────────────┬─────────────────────────────────────┘
+                                │  fetch() com JSON
+                                │  header: Authorization: Bearer <JWT>
+                                ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│  SPRING SECURITY (SegurityConfig + JwtAuthFilter + JwtService)      │
+│  • valida o token JWT e carrega o usuário autenticado               │
+│  • sessão STATELESS (sem cookies de sessão)                         │
+│  • /auth/** e GET /produtos/** ........................ público      │
+│  • POST/PUT/DELETE /produtos/** e /admin/** ......... exige ADMIN   │
+│  • /carrinho/** e /pedidos/** ............... exige usuário logado  │
+└───────────────────────────────┬─────────────────────────────────────┘
+                                ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│  API REST — Controllers (@RestController)                           │
+│  AuthController · ProdutoController · CarrinhoController ·          │
+│  PedidoController · AdminController · ImagemController ·            │
+│  UsuarioController                                                  │
+└───────────────────────────────┬─────────────────────────────────────┘
+                                ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│  SERVIÇOS (@Service) — regras de negócio                            │
+│  UsuarioService · ProdutoService · CarrinhoService ·                │
+│  PedidoService · VerificacaoService · LoggedUsersService ·          │
+│  AdminMasterService   (+ EmailService SMTP e PdfService OpenPDF)    │
+└───────────────────────────────┬─────────────────────────────────────┘
+                                ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│  REPOSITÓRIOS (Spring Data JPA)                                     │
+│  UsuarioRepository · ProdutoRepository · CarrinhoRepository ·       │
+│  ItemCarrinhoRepository · PedidoRepository                          │
+└───────────────────────────────┬─────────────────────────────────────┘
+                                ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│  MySQL 8 — banco `coretech` (perfil `prod`)                         │
+│  tabelas: usuarios · produtos · carrinho · itemcarrinho · pedidos   │
+│  (perfil `test`: H2 em memória, mesmas tabelas)                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+**Fluxo de uma requisição** (exemplo: adicionar item ao carrinho):
+
+1. `carrinho.html` chama `fetch("/carrinho/itens", { method: "POST", headers: { Authorization: Bearer <JWT> } })`;
+2. o `JwtAuthFilter` valida a assinatura/expiração do token e injeta o usuário autenticado no contexto
+   (sem token ou sem permissão → `403`, resposta padrão do Spring Security);
+3. o `CarrinhoController` recebe a requisição e delega ao `CarrinhoService`;
+4. o `CarrinhoService` aplica as regras (produto existe, estoque, quantidade) e usa o
+   `CarrinhoRepository` / `ItemCarrinhoRepository`;
+5. o Spring Data JPA grava no MySQL e o objeto `Carrinho` atualizado volta como JSON ao frontend.
+
+Pontos-chave do desenho:
+
+- **Separação de responsabilidades:** controller só recebe/retorna HTTP; serviço concentra a regra de
+  negócio; repositório é a única camada que fala com o banco (JPA/Hibernate).
+- **Segurança na borda:** as regras de acesso ficam centralizadas em `SegurityConfig`, não nos controllers.
+- **Serviços auxiliares:** `EmailService` (SMTP) e `PdfService` (OpenPDF) são acionados pelos serviços —
+  código de confirmação no cadastro e comprovante no checkout.
+- **Infra:** imagens de produto são salvas em `./uploads/` e servidas em `/uploads/**` (`WebConfig`);
+  comprovantes PDF ficam em `./comprovantes/`.
+
 ## Pré-requisitos
 
 - **JDK 21** (`java -version`)
@@ -118,6 +189,58 @@ O seed (`TesteConfig`) roda nos perfis `test` e `prod` de forma **idempotente**
 | Cliente demo | `tom@gmail.com` | `123456` |
 
 Catálogo inicial: 8 produtos. Para alterar o admin, use `APP_ADMIN_EMAIL` / `APP_ADMIN_SENHA`.
+
+## API REST — endpoints representativos
+
+Base URL: `http://localhost:8080`. Todas as rotas abaixo **existem no código**
+(`src/main/java/coretech/sistemaCoreTech/controller/`) e foram verificadas em execução real.
+O nível de acesso é definido em `SegurityConfig.securityFilterChain`: rotas protegidas exigem o
+header `Authorization: Bearer <token>` (token obtido no `POST /auth/login`) — sem ele a resposta é
+`403 Forbidden`.
+
+### Autenticação e cadastro — público (`/auth/**`)
+
+| Método | Rota | Finalidade |
+|---|---|---|
+| POST | `/auth/cadastro` | Cria a conta inativa e envia por e-mail o código de 6 dígitos |
+| POST | `/auth/confirmar-codigo` | Ativa a conta com o código recebido por e-mail |
+| POST | `/auth/reenviar-codigo` | Gera e reenvia um novo código de confirmação |
+| POST | `/auth/login` | Autentica e devolve o JWT (+ perfil e e-mail); `428` se a conta não foi confirmada |
+| POST | `/auth/logout` | Registra o logout do token e limpa o contexto de segurança |
+
+### Catálogo de produtos — leitura pública (`GET /produtos/**`)
+
+| Método | Rota | Finalidade |
+|---|---|---|
+| GET | `/produtos` | Lista o catálogo completo |
+| GET | `/produtos/{id}` | Detalhes de um produto pelo id |
+| GET | `/produtos/busca?nome={texto}` | Busca produtos pelo nome |
+
+### Carrinho e pedidos — exige JWT (`USER` ou `ADMIN`)
+
+| Método | Rota | Finalidade |
+|---|---|---|
+| GET | `/carrinho` | Retorna o carrinho do usuário logado |
+| POST | `/carrinho/itens` | Adiciona item ao carrinho (body: `produtoId`, `quantidade`) |
+| PUT | `/carrinho/itens/{itemId}` | Altera a quantidade de um item do carrinho (body: `quantidade`) |
+| DELETE | `/carrinho/itens/{itemId}` | Remove um item do carrinho |
+| DELETE | `/carrinho` | Esvazia o carrinho ("Limpar Carrinho") |
+| POST | `/pedidos/checkout` | Finaliza a compra: valida estoque, cria o pedido, baixa estoque, gera comprovante PDF e limpa o carrinho |
+| GET | `/usuarios/user` | Lista os usuários cadastrados (rota autenticada) |
+
+### Administração — exige JWT + `ROLE_ADMIN` (`/admin/**`, `POST/PUT/DELETE /produtos/**`)
+
+| Método | Rota | Finalidade |
+|---|---|---|
+| POST | `/produtos` | Cria um produto no catálogo |
+| PUT | `/produtos/{id}` | Atualiza um produto existente |
+| DELETE | `/produtos/{id}` | Remove um produto (HTTP `204`) |
+| POST | `/admin/imagens` | Upload de imagem do produto (multipart `arquivo`, até 5MB) → devolve `{"url": "/uploads/..."}` |
+| GET | `/admin/usuarios` | Lista todos os usuários |
+| GET | `/admin/usuarios-logados` | Lista os usuários com sessão ativa |
+
+Rotas estáticas (sem token): `/`, `*.html`, `/css/**`, `/js/**`, `/images/**` e `/uploads/**`
+(imagens enviadas via `/admin/imagens`).
 
 ## Testes
 
